@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Text, TouchableOpacity, StyleSheet, Dimensions, Animated, View , Image } from 'react-native';
 import { Player } from '@/types/tic-tac-toe';
 import LottieView from 'lottie-react-native';
@@ -21,6 +21,20 @@ const GameOverScreen: React.FC<GameOverScreenProps> = ({
   onPlayAgain,
   animatedStyle,
 }) => {
+  const [showVictoryEffects, setShowVictoryEffects] = useState(false);
+
+useEffect(() => {
+  if (gameComplete && winner !== 'draw' && winner !== null) {
+    // Подождать 300-500 мс перед эффектами
+    const timeout = setTimeout(() => {
+      setShowVictoryEffects(true);
+    }, 300);
+
+    return () => clearTimeout(timeout);
+  }
+}, [gameComplete, winner]);
+
+
   if (!gameComplete) return null;
 
   let message = "It's a draw!";

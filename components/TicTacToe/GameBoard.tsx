@@ -6,7 +6,7 @@ import { Animated, StyleProp, ImageStyle, ImageSourcePropType } from 'react-nati
 
 const { width, height } = Dimensions.get('window');
 const isLandscape = width > height;
-
+import { VictoryGlow } from './Animation';
 // More conservative sizing to ensure everything fits
 const availableWidth = width - 140; // More space for avatars
 const availableHeight = height * 0.45; // Reduced from 60% to 45%
@@ -96,21 +96,17 @@ const GameBoard: React.FC<GameBoardProps> = ({
 
     return (
       <TouchableOpacity
-        key={`${row}-${col}`}
-        style={[
-          styles.cell,
-          isWinningCell && styles.winningCell,
-          isHighlighted && styles.highlightedCell,
-        ]}
-        onPress={() => onCellPress(row, col)}
-        activeOpacity={0.7}
-        testID={`cell-${row}-${col}`}
-      >
-        {cell === 'X' && <AnimatedAvatar source={photo1} row={row} col={col} style={styles.photo1Cell} />}
+  key={`${row}-${col}`}
+  style={styles.cell}
+  onPress={() => onCellPress(row, col)}
+  activeOpacity={0.7}
+  testID={`cell-${row}-${col}`}
+>
+  {isWinningCell && <VictoryGlow />}
 
-        {cell === 'O' && <AnimatedAvatar source={photo2} row={row} col={col} style={styles.photo2Cell} />}
-
-      </TouchableOpacity>
+  {cell === 'X' && <AnimatedAvatar source={photo1} row={row} col={col} style={styles.photo1Cell} />}
+  {cell === 'O' && <AnimatedAvatar source={photo2} row={row} col={col} style={styles.photo2Cell} />}
+</TouchableOpacity>
     );
   };
 
@@ -183,9 +179,7 @@ const styles = StyleSheet.create({
     height: CELL_SIZE * 0.8,
     borderRadius: (CELL_SIZE * 0.8) / 2,
   },
-  winningCell: {
-    backgroundColor: 'rgba(0, 255, 0, 0.2)',
-  },
+ 
   highlightedCell: {
     backgroundColor: 'rgba(255, 255, 255, 0.3)',
     borderWidth: 2,
