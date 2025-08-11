@@ -219,7 +219,6 @@ const GameBoard: React.FC<GameBoardProps> = ({
   const renderCell = (row: number, col: number) => {
     const cell = board[row][col];
     const isHintCell = hintVisible && hintCell?.[0] === row && hintCell?.[1] === col;
-
     const isWinningCell = winningLine?.some(
       ([r, c]) => r === row && c === col
     );
@@ -261,6 +260,22 @@ const GameBoard: React.FC<GameBoardProps> = ({
       style={[styles.photo2Cell, { width: cellSize * 0.8, height: cellSize * 0.8, borderRadius: (cellSize * 0.8) / 2 }]}
     />
   )}
+  {isHintCell && (
+        <Animated.View
+          style={[
+            styles.hintBackground,
+            {
+              position: 'absolute',
+              left: (cellSize - 16) / 2, // центрируем иконку в клетке
+              top: (cellSize - 16) / 2,
+              transform: [{ scale: hintScale }],
+              zIndex: 10,
+            },
+          ]}
+        >
+          <StarAdvise width={16} height={16} />
+        </Animated.View>
+      )}
 </TouchableOpacity>
     );
   };
