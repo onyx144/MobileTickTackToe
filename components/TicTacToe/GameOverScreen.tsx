@@ -50,13 +50,15 @@ useEffect(() => {
   return (
     <Animated.View style={[styles.gameOverContainer, animatedStyle]} testID="game-over-container">
       {showWinGif && (
-        <LottieView
-          source={winGif}
-          autoPlay
-          loop={true}
-          style={styles.winGif}
-          speed={0.5}
-        />
+       <View style={styles.lottieContainer} pointerEvents="none">
+       <LottieView
+         source={winGif}
+         autoPlay
+         loop={true}
+         style={styles.winGif}
+         speed={0.5}
+       />
+     </View>
       )}
      <LinearGradient
   colors={['rgba(125, 34, 241, 0)', '#7D22F1', 'rgba(125, 34, 241, 0)']}
@@ -132,14 +134,19 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 18,
   },
-  winGif: {
+  lottieContainer: {
     position: 'absolute',
-    width: width,
-    height: 300,
-    left: '-50%',
-    top: -100,
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
     zIndex: 99999,
-    marginBottom: 20,
+  },
+  winGif: {
+    width: width * 0.8, // например 80% ширины экрана
+    height: 300,
   },
 });
 

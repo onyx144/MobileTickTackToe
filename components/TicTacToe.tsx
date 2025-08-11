@@ -87,7 +87,7 @@ const TicTacToe: React.FC<TicTacToeProps> = (props) => {
     <ImageBackground source={backgroundImage} style={styles.container} testID="tic-tac-toe-game">
       <Animated.View style={[styles.gameContainer, hasStarted ? introStyle : null, gameContainerStyle]} testID="game-content">
        <View >
-          <Image
+       <Image
          source={require('../assets/ellipse.png')}
          style={{
            position: 'absolute',
@@ -95,7 +95,7 @@ const TicTacToe: React.FC<TicTacToeProps> = (props) => {
            left: 0,
            right: 0,
            width: '100%',
-              height: Dimensions.get('window').height,
+           height: Dimensions.get('window').height,
            resizeMode: 'cover',
            zIndex: 0,
          }}

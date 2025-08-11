@@ -3,8 +3,8 @@ import { View, TouchableOpacity, Image, StyleSheet, useWindowDimensions } from '
 import { LinearGradient } from 'expo-linear-gradient';
 import { Board } from '@/types/tic-tac-toe';
 import { Animated, StyleProp, ImageStyle, ImageSourcePropType } from 'react-native';
-
 import { VictoryGlow, AnimatedStar, useLoopingRotation, useAvatarStars } from './Animation';
+import { StarAdvise } from '@/assets/svg/star-advise';
 
 type AnimatedAvatarProps = {
     source: ImageSourcePropType;
@@ -81,9 +81,47 @@ const GameBoard: React.FC<GameBoardProps> = ({
   photo2,
   onLayout,
 }) => {
+  
   const [elapsedSeconds, setElapsedSeconds] = useState<number>(0);
   const intervalRef = useRef<number | null>(null);
-
+  /*Подсказка*/
+  
+  const [showHint, setShowHint] = useState(true); 
+  const hintScale = useRef(new Animated.Value(1)).current;
+  
+  // Перезапускаем анимацию при изменении bestMove
+  useEffect(() => {
+    if (bestMove && showHint) {
+      // Сбрасываем анимацию
+      hintScale.setValue(1);
+      
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(hintScale, {
+            toValue: 1.5,
+            duration: 1000,
+            useNativeDriver: true,
+          }),
+          Animated.timing(hintScale, {
+            toValue: 1,
+            duration: 1000,
+            useNativeDriver: true,
+          }),
+        ])
+      ).start();
+    }
+  }, [bestMove, showHint, hintScale]);
+  
+  const getHintCell = (): [number, number] | null => {
+    // Используем только bestMove, не делаем fallback на первую пустую клетку
+    if (bestMove && board[bestMove[0]][bestMove[1]] === null) {
+      return [bestMove[0], bestMove[1]];
+    }
+    return null;
+  };
+  
+  
+  /*Конец подсказки*/
   const isBoardEmpty = (b: Board) => b.every(row => row.every(cell => cell === null));
   const hasAnyEmpty = (b: Board) => b.some(row => row.some(cell => cell === null));
   const isGameOver = (b: Board, win: number[][] | null) => win !== null || !hasAnyEmpty(b);
@@ -112,6 +150,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
       }
     } else if (isBoardEmpty(board)) {
       setElapsedSeconds(0);
+      setShowHint(true); // Сбрасываем hint при новой игре
       if (intervalRef.current == null) {
         intervalRef.current = setInterval(() => {
           setElapsedSeconds(prev => prev + 1);
@@ -179,6 +218,8 @@ const GameBoard: React.FC<GameBoardProps> = ({
 
   const renderCell = (row: number, col: number) => {
     const cell = board[row][col];
+    const isHintCell = hintVisible && hintCell?.[0] === row && hintCell?.[1] === col;
+
     const isWinningCell = winningLine?.some(
       ([r, c]) => r === row && c === col
     );
@@ -223,7 +264,14 @@ const GameBoard: React.FC<GameBoardProps> = ({
 </TouchableOpacity>
     );
   };
-
+  const countMoves = board.flat().filter(cell => cell !== null).length;
+const currentPlayer = countMoves % 2 === 0 ? 'X' : 'O';
+  const hintCell = getHintCell();
+  const hintVisible = showHint && hintCell !== null && currentPlayer === 'X';
+  const hintPosition = hintCell ? {
+    left: hintCell[1] * cellSize  + (cellSize - 15) / 2, 
+    top: hintCell[0] * cellSize + (cellSize - 15) / 2,
+  } : null;
 
 
   return (
@@ -234,6 +282,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
         </View>
       </View>
       
+
       {board.map((row, rowIndex) => (
         <View key={`row-${rowIndex}`} style={styles.row}>
           {row.map((_, colIndex) => (
@@ -360,6 +409,23 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     elevation: 10,
   },
+  hintContainer: {
+    position: 'absolute',
+    width: 32,
+    height: 32,
+    zIndex: 20,
+  },
+  hintBackground: {
+    flex: 1,
+    backgroundColor: '#90A6FF99',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#6876B94D',
+    padding: 2,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  
   photo2Cell: {
     borderWidth: 3,
     borderColor: '#ADEFFF',
