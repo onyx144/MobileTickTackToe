@@ -1,29 +1,23 @@
 import React , { useEffect , useRef, useState } from 'react';
-import { View, TouchableOpacity, Image, StyleSheet, Dimensions } from 'react-native';
+import { View, TouchableOpacity, Image, StyleSheet, useWindowDimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Board } from '@/types/tic-tac-toe';
 import { Animated, StyleProp, ImageStyle, ImageSourcePropType } from 'react-native';
 
-const { width, height } = Dimensions.get('window');
-const isLandscape = width > height;
 import { VictoryGlow, AnimatedStar, useLoopingRotation, useAvatarStars } from './Animation';
-// More conservative sizing to ensure everything fits
-const availableWidth = width - 140; // More space for avatars
-const availableHeight = height * 0.45; // Reduced from 60% to 45%
-const maxBoardSize = Math.min(availableWidth, availableHeight, isLandscape ? width * 0.5 : width * 0.55);
-const CELL_SIZE = Math.floor(width / 10);
 
 type AnimatedAvatarProps = {
     source: ImageSourcePropType;
     row: number;
     col: number;
     style?: StyleProp<ImageStyle>;
+    cellSize: number;
   };
-const AnimatedAvatar: React.FC<AnimatedAvatarProps> = ({ source, row, col, style }) => {
+const AnimatedAvatar: React.FC<AnimatedAvatarProps> = ({ source, row, col, style, cellSize }) => {
     const scale = useRef(new Animated.Value(1.2)).current;
     const translateX = useRef(
       new Animated.Value(
-        col === 0 ? -CELL_SIZE * 0.8 : col === 2 ? CELL_SIZE * 0.8 : 0
+        col === 0 ? -cellSize * 0.8 : col === 2 ? cellSize * 0.8 : 0
       )
     ).current;
     const opacity = useRef(new Animated.Value(0)).current;
@@ -135,6 +129,8 @@ const GameBoard: React.FC<GameBoardProps> = ({
 
   const minutes = Math.floor(elapsedSeconds / 60).toString().padStart(2, '0');
   const seconds = (elapsedSeconds % 60).toString().padStart(2, '0');
+  const { width, height } = useWindowDimensions();
+  const cellSize = Math.floor(width / 10);
   const WinningCellEffects: React.FC<{ isActive: boolean; isFirstPlayer: boolean }> = ({ isActive, isFirstPlayer }) => {
     const rotation = useLoopingRotation(isActive, { durationMs: 6000 });
     const { activeStars, starTriggers, removeStar } = useAvatarStars(isActive, {
@@ -159,6 +155,8 @@ const GameBoard: React.FC<GameBoardProps> = ({
                 }),
               },
             ],
+            width: cellSize + 20,
+            height: cellSize + 20,
           },
         ]}
       >
@@ -172,7 +170,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
             isActive={starTriggers.includes(starId)}
             onComplete={() => removeStar(starId)}
             isFirstPlayer={isFirstPlayer}
-            avatarSize={CELL_SIZE * 0.8}
+            avatarSize={cellSize * 0.8}
           />
         ))}
       </Animated.View>
@@ -189,7 +187,10 @@ const GameBoard: React.FC<GameBoardProps> = ({
     return (
       <TouchableOpacity
   key={`${row}-${col}`}
-  style={styles.cell}
+  style={[
+    styles.cell,
+    { width: cellSize, height: cellSize },
+  ]}
   onPress={() => onCellPress(row, col)}
   activeOpacity={0.7}
   testID={`cell-${row}-${col}`}
@@ -201,8 +202,24 @@ const GameBoard: React.FC<GameBoardProps> = ({
     </>
   )}
 
-  {cell === 'X' && <AnimatedAvatar source={photo1} row={row} col={col} style={styles.photo1Cell} />}
-  {cell === 'O' && <AnimatedAvatar source={photo2} row={row} col={col} style={styles.photo2Cell} />}
+  {cell === 'X' && (
+    <AnimatedAvatar
+      source={photo1}
+      row={row}
+      col={col}
+      cellSize={cellSize}
+      style={[styles.photo1Cell, { width: cellSize * 0.8, height: cellSize * 0.8, borderRadius: (cellSize * 0.8) / 2 }]}
+    />
+  )}
+  {cell === 'O' && (
+    <AnimatedAvatar
+      source={photo2}
+      row={row}
+      col={col}
+      cellSize={cellSize}
+      style={[styles.photo2Cell, { width: cellSize * 0.8, height: cellSize * 0.8, borderRadius: (cellSize * 0.8) / 2 }]}
+    />
+  )}
 </TouchableOpacity>
     );
   };
@@ -210,7 +227,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
 
 
   return (
-    <View style={styles.board} testID="game-board" onLayout={onLayout}>
+    <View style={[styles.board, { width: cellSize * 3 + 10, height: cellSize * 3 + 10 }]} testID="game-board" onLayout={onLayout}>
       <View style={styles.timerContainer} pointerEvents="none">
         <View style={styles.timerPill}>
           <Animated.Text style={styles.timerText}>{minutes}:{seconds}</Animated.Text>
@@ -233,7 +250,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
                start={{ x: 0, y: 0.5 }}
                end={{ x: 1, y: 0.5 }}
                locations={[0, 0.205, 0.76, 1]}
-               style={styles.verticalLine}
+               style={[styles.verticalLine, { height: cellSize }]}
              />
               )}
             </View>
@@ -249,7 +266,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
               start={{ x: 0.5, y: 0 }}
               end={{ x: 0.5, y: 1 }}
               locations={[0, 0.205, 0.76, 1]}
-              style={styles.horizontalLine}
+              style={[styles.horizontalLine, { width: cellSize * 3 + 6 }]}
             />
           )}
         </View>
@@ -260,8 +277,6 @@ const GameBoard: React.FC<GameBoardProps> = ({
 
 const styles = StyleSheet.create({
   board: {
-    width: CELL_SIZE * 3 + 10,
-    height: CELL_SIZE * 3 + 10,
   },
   
   row: {
@@ -272,8 +287,6 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   cell: {
-    width: CELL_SIZE,
-    height: CELL_SIZE,
     justifyContent: 'center',
     alignItems: 'center',
     margin: 3,
@@ -281,9 +294,6 @@ const styles = StyleSheet.create({
     borderRadius: 20,
   },
   cellImage: {
-    width: CELL_SIZE * 0.8,
-    height: CELL_SIZE * 0.8,
-    borderRadius: (CELL_SIZE * 0.8) / 2,
   },
   timerContainer: {
     position: 'absolute',
@@ -314,8 +324,6 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: -10,
     left: -10,
-    width: CELL_SIZE + 20,
-    height: CELL_SIZE + 20,
     zIndex: 0,
     overflow: 'hidden',
   },
@@ -334,14 +342,12 @@ const styles = StyleSheet.create({
     right: -1,
     top: 0,
     width: 2,
-    height: CELL_SIZE,
     zIndex: 1,
   },
   horizontalLine: {
     position: 'absolute',
     left: 0,
     bottom: -1,
-    width: CELL_SIZE * 3 + 6,
     height: 2,
     zIndex: 1,
   },
@@ -349,8 +355,6 @@ const styles = StyleSheet.create({
     borderWidth: 3,
     borderColor: '#FFE97C',
     shadowColor: '#C57CFF',
-    width: CELL_SIZE * 0.9,
-    height: CELL_SIZE * 0.9,
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 1,
     shadowRadius: 10,
@@ -358,8 +362,6 @@ const styles = StyleSheet.create({
   },
   photo2Cell: {
     borderWidth: 3,
-    width: CELL_SIZE * 0.9,
-    height: CELL_SIZE * 0.9,
     borderColor: '#ADEFFF',
   },
   iconButton: {
