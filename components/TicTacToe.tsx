@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   StyleSheet,
@@ -6,12 +6,14 @@ import {
   Animated,
   Image,
   ImageBackground,
+  TouchableOpacity,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { TicTacToeProps } from '@/types/tic-tac-toe';
 import GameBoard from './TicTacToe/GameBoard';
 import PlayerAvatar from './TicTacToe/PlayerAvatar';
 import GameOverScreen from './TicTacToe/GameOverScreen';
+import StartScreen from './TicTacToe/StartScreen';
 import { useTicTacToeGame } from '../hooks/useTicTacToeGame';
 import { useTicTacToeAnimations } from '../hooks/useTicTacToeAnimations';
 
@@ -37,6 +39,8 @@ const TicTacToe: React.FC<TicTacToeProps> = (props) => {
   } = props;
 
   const [boardHeight, setBoardHeight] = useState<number>(0);
+  const [hasStarted, setHasStarted] = useState<boolean>(false);
+  const introAnim = useRef(new Animated.Value(0)).current;
   const { gameState, bestMove, gameComplete, handleCellPress, resetGame } = useTicTacToeGame();
   
   const {
@@ -45,22 +49,49 @@ const TicTacToe: React.FC<TicTacToeProps> = (props) => {
     gameContainerStyle,
     congratsContainerStyle,
     resetAnimations,
-  } = useTicTacToeAnimations(gameState.currentPlayer, gameState.winner);
+  } = useTicTacToeAnimations(
+    gameState.currentPlayer,
+    gameState.winner,
+    gameComplete
+  );
 
   const handleResetGame = () => {
     resetGame();
     resetAnimations();
   };
 
+  useEffect(() => {
+    if (hasStarted) {
+      introAnim.setValue(0);
+      Animated.timing(introAnim, {
+        toValue: 1,
+        duration: 500,
+        useNativeDriver: true,
+      }).start();
+    }
+  }, [hasStarted, introAnim]);
+
+  const introStyle = {
+    opacity: introAnim,
+    transform: [
+      {
+        translateY: introAnim.interpolate({
+          inputRange: [0, 1],
+          outputRange: [20, 0],
+        }),
+      },
+    ],
+  };
+
   return (
     <ImageBackground source={backgroundImage} style={styles.container} testID="tic-tac-toe-game">
-      <Animated.View style={[styles.gameContainer, gameContainerStyle]} testID="game-content">
+      <Animated.View style={[styles.gameContainer, hasStarted ? introStyle : null, gameContainerStyle]} testID="game-content">
        <View >
        <Image
          source={require('../assets/ellipse.png')}
          style={{
            position: 'absolute',
-           top: 0,
+           top: 50,
            left: 0,
            right: 0,
            width: '100%',
@@ -107,7 +138,36 @@ const TicTacToe: React.FC<TicTacToeProps> = (props) => {
             />
           </View>
         </View>
+         {/* Top bar icons */}
+      <View style={styles.topBar} pointerEvents="box-none">
+        <TouchableOpacity style={styles.iconButton} activeOpacity={0.8} testID="back-button">
+          <Image
+            source={require('../assets/back.png')}
+            style={styles.topIcon}
+            resizeMode="contain"
+          />
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.iconButton} activeOpacity={0.8} testID="quest-button">
+          <Image
+            source={require('../assets/quest.png')}
+            style={styles.topIconQuest}
+            resizeMode="contain"
+          />
+        </TouchableOpacity>
+      </View>
+      <View style={styles.imageContainer} pointerEvents="box-none">
+        <TouchableOpacity activeOpacity={0.8} testID="back-button">
+          <Image
+            source={require('../assets/back_board.png')}
+            style={styles.backIcon}
+            resizeMode="contain"
+          />
+        </TouchableOpacity>
+        </View>
       </Animated.View>
+
+     
       
       <GameOverScreen
         winner={gameState.winner}
@@ -116,6 +176,11 @@ const TicTacToe: React.FC<TicTacToeProps> = (props) => {
         onPlayAgain={handleResetGame}
         animatedStyle={congratsContainerStyle}
       />
+      {!hasStarted && (
+        <View style={styles.startScreenContainer}>
+          <StartScreen onStart={() => setHasStarted(true)} />
+        </View>
+      )}
     </ImageBackground>
   );
 };
@@ -125,6 +190,19 @@ const styles = StyleSheet.create({
     flex: 1,
     width: '100%',
     height: '100%',
+  },
+  backIcon: {
+    width: 110,
+    height: 110,
+  },
+  imageContainer: {
+    position: 'absolute',
+    top: '20%',
+    bottom: 0,
+    right: 30,
+    justifyContent: 'center',
+    alignItems: 'flex-end',
+    zIndex: 20,
   },
   gradient: {
     flex: 1,
@@ -163,6 +241,35 @@ const styles = StyleSheet.create({
   boardContainer: {
     padding: 10,
     borderRadius: 10,
+  },
+  startScreenContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 1000,
+  },
+  topBar: {
+    position: 'absolute',
+    top: 16,
+    left: 50,
+    right: 50,
+    zIndex: 1100,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  iconButton: {
+    padding: 6,
+  },
+  topIcon: {
+    width: 60,
+    height: 60,
+  },
+  topIconQuest: {
+    width: 110,
+    height: 110,
   },
 });
 

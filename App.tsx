@@ -1,7 +1,14 @@
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View } from 'react-native';
+import { useFonts } from 'expo-font';
 import TicTacToe from '@/components/TicTacToe';
 export default function App() {
+  const [fontsLoaded] = useFonts({
+    'Bangers': require('./assets/fonts/Bangers-Regular.ttf'),
+    'Fredoka': require('./assets/fonts/Fredoka-Regular.ttf'),
+  });
+
+  
   return (
     <View style={styles.container}>
        <TicTacToe 

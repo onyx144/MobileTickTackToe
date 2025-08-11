@@ -1,9 +1,8 @@
 import React, { useEffect, useRef } from 'react';
-import { View, Text, Image, StyleSheet, Dimensions, Animated , Easing  } from 'react-native';
+import { View, Text, Image, StyleSheet, Dimensions, Animated  } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Player } from '@/types/tic-tac-toe';
-import Star from '@/svg/star';
-import WhiteStar from '@/svg/whiteStart'
+import { AnimatedStar, useBlinkingOpacity, useLoopingRotation, useAvatarStars } from './Animation';
 const { width } = Dimensions.get('window');
 const AVATAR_SIZE = 60;
 
@@ -19,97 +18,7 @@ interface PlayerAvatarProps {
   isFirstPlayer?: boolean;
 }
 
-const AnimatedStar = ({ 
-  isActive, 
-  onComplete,
-  isFirstPlayer
-}: { 
-  isActive: boolean; 
-  onComplete: () => void;
-  isFirstPlayer: boolean;
-}) => {
-  const translateX = useRef(new Animated.Value(0)).current;
-  const translateY = useRef(new Animated.Value(0)).current;
-  const rotate = useRef(new Animated.Value(0)).current;
-  const opacity = useRef(new Animated.Value(1)).current;
-
-  useEffect(() => {
-    if (isActive) {
-      // Случайные направления и дистанция
-      const angle = Math.random() * 2 * Math.PI;
-      const distance = 60 + Math.random() * 40;
-      const dx = Math.cos(angle) * distance;
-      const dy = Math.sin(angle) * distance;
-
-      // Сбросить значения
-      translateX.setValue(0);
-      translateY.setValue(0);
-      rotate.setValue(0);
-      opacity.setValue(1);
-
-      // Параллельная анимация
-      Animated.parallel([
-        Animated.timing(translateX, {
-          toValue: dx,
-          duration: 2000,
-          easing: Easing.out(Easing.quad),
-          useNativeDriver: true,
-        }),
-        Animated.timing(translateY, {
-          toValue: dy,
-          duration: 2000,
-          easing: Easing.out(Easing.quad),
-          useNativeDriver: true,
-        }),
-        Animated.timing(rotate, {
-          toValue: 1,
-          duration: 2000,
-          easing: Easing.linear,
-          useNativeDriver: true,
-        }),
-        Animated.timing(opacity, {
-          toValue: 0,
-          duration: 2000,
-          easing: Easing.inOut(Easing.quad),
-          useNativeDriver: true,
-        }),
-      ]).start(() => {
-        // Используем setTimeout чтобы избежать обновления состояния во время рендера
-        setTimeout(() => {
-          onComplete();
-        }, 0);
-      });
-    }
-  }, [isActive]);
-
-  const spin = rotate.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['0deg', '360deg'],
-  });
-
-  if (!isActive) return null;
-
-  return (
-    <Animated.View
-      style={{
-        position: 'absolute',
-        top: AVATAR_SIZE / 2 - 10,
-        left: AVATAR_SIZE / 2 - 10,
-        transform: [{ translateX }, { translateY }, { rotate: spin }],
-        opacity,
-        zIndex: 805,
-      }}
-    >
-      {isFirstPlayer ? (
-        <Star width={20} height={20} />
-      ) : (
-        <View style={{ width: 20, height: 20 }}>
-          <WhiteStar />
-        </View>
-      )}
-    </Animated.View>
-  );
-};
+// animations moved to `Animation.tsx`
 
 const PlayerAvatar: React.FC<PlayerAvatarProps> = ({
   photo,
@@ -122,94 +31,14 @@ const PlayerAvatar: React.FC<PlayerAvatarProps> = ({
   boardHeight,
   isFirstPlayer,
 }) => {
-  const [activeStars, setActiveStars] = React.useState<number[]>([]);
-  const [starTriggers, setStarTriggers] = React.useState<number[]>([]);
-  const starCounter = useRef(0);
-
-  const lightPulse = useRef(new Animated.Value(0)).current;
-  const rotation = useRef(new Animated.Value(0)).current;
-
-  // Функция для создания новой звезды
-  const spawnStar = () => {
-    if (activeStars.length < 5) {
-      const newStarId = starCounter.current++;
-      setActiveStars(prev => [...prev, newStarId]);
-      // Добавляем триггер для запуска анимации
-      setStarTriggers(prev => [...prev, newStarId]);
-    }
-  };
-
-  // Функция для удаления звезды
-  const removeStar = (starId: number) => {
-    setActiveStars(prev => prev.filter(id => id !== starId));
-    setStarTriggers(prev => prev.filter(id => id !== starId));
-  };
-
-  useEffect(() => {
-    if (currentPlayer === player && !winner) {
-      // Создаем звезды с интервалом
-      const interval = setInterval(() => {
-        spawnStar();
-      }, 500 + Math.random() * 1000);
-
-      // Анимация пульсации света
-      Animated.loop(
-        Animated.sequence([
-          Animated.timing(lightPulse, {
-            toValue: 1,
-            duration: 1000,
-            useNativeDriver: true,
-          }),
-          Animated.timing(lightPulse, {
-            toValue: 0,
-            duration: 1000,
-            useNativeDriver: true,
-          }),
-        ])
-      ).start();
-
-      // Анимация вращения фона
-      rotation.setValue(0); // сбросить
-      Animated.loop(
-        Animated.timing(rotation, {
-          toValue: 1,
-          duration: 6000, // медленнее вращение, можно менять
-          easing: Easing.linear,
-          useNativeDriver: true,
-        })
-      ).start();
-
-      return () => clearInterval(interval);
-    } else {
-      // Очищаем все звезды когда игрок неактивен
-      setActiveStars([]);
-      lightPulse.setValue(0);
-      rotation.setValue(0);
-    }
-  }, [currentPlayer, player, winner]);
-    
-const blinkingOpacity = useRef(new Animated.Value(1)).current;
-
-useEffect(() => {
-  if (currentPlayer === player && !winner) {
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(blinkingOpacity, {
-          toValue: 0.3,
-          duration: 500,
-          useNativeDriver: true,
-        }),
-        Animated.timing(blinkingOpacity, {
-          toValue: 1,
-          duration: 500,
-          useNativeDriver: true,
-        }),
-      ])
-    ).start();
-  } else {
-    blinkingOpacity.setValue(1); // если не текущий игрок — вернуть прозрачность в норму
-  }
-}, [currentPlayer, player, winner]);
+  const isActive = currentPlayer === player && !winner;
+  const { activeStars, starTriggers, removeStar } = useAvatarStars(isActive, {
+    maxStars: 5,
+    minIntervalMs: 500,
+    maxIntervalMs: 1500,
+  });
+  const rotation = useLoopingRotation(isActive, { durationMs: 6000 });
+  const blinkingOpacity = useBlinkingOpacity(isActive, { lowOpacity: 0.3, durationMs: 500 });
   const renderTurnIndicator = () => {
     if (currentPlayer !== player || winner) return null;
     
@@ -315,6 +144,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'flex-end',
     paddingBottom: 20,
+    overflow: 'hidden',
   },
   contentContainer: {
     alignItems: 'center',
@@ -360,7 +190,11 @@ const styles = StyleSheet.create({
   },
   playerName: {
     color: 'white',
-    fontWeight: 'bold',
+     fontFamily: 'Fredoka',
+    fontWeight: '600',
+    textTransform: 'uppercase',
+
+    fontStyle: 'normal',
     textShadowColor: 'rgba(0, 0, 0, 0.5)',
     textShadowOffset: { width: 1, height: 1 },
     textShadowRadius: 2,
@@ -389,6 +223,9 @@ const styles = StyleSheet.create({
     textShadowRadius: 4,
   },
   turnTextSecondPlayer: {
+    fontFamily: 'Fredoka',
+    fontWeight: '600',
+    fontStyle: 'normal',
     color: 'white',
     textShadowColor: '#B14EFF',
     textShadowOffset: { width: 0, height: 0 },
@@ -438,6 +275,7 @@ const styles = StyleSheet.create({
   bgImage: {
     width: '100%',
     height: '100%',
+    overflow: 'hidden',
   },
   activeFirstPlayerContainer: {
     borderRadius: 50,

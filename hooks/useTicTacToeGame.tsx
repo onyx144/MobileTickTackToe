@@ -192,7 +192,12 @@ export const useTicTacToeGame = () => {
 
   useEffect(() => {
     if (gameState.winner) {
-      setGameComplete(true);
+      // Delay showing game over by 5 minutes (300000 ms)
+      const delay = setTimeout(() => {
+        setGameComplete(true);
+      }, 3000);
+
+      return () => clearTimeout(delay);
     }
   }, [gameState.winner]);
 

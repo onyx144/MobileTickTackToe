@@ -4,7 +4,11 @@ import { Player } from '@/types/tic-tac-toe';
 
 const { height } = Dimensions.get('window');
 
-export const useTicTacToeAnimations = (currentPlayer: Player, winner: Player | 'draw' | null) => {
+export const useTicTacToeAnimations = (
+  currentPlayer: Player,
+  winner: Player | 'draw' | null,
+  gameComplete?: boolean
+) => {
   const gameContainerAnim = useRef(new Animated.Value(0)).current;
   const player1Anim = useRef(new Animated.Value(0)).current;
   const player2Anim = useRef(new Animated.Value(0)).current;
@@ -38,9 +42,10 @@ export const useTicTacToeAnimations = (currentPlayer: Player, winner: Player | '
 
   const animateGameCompletion = useCallback(() => {
     Animated.sequence([
+      Animated.delay(300),
       Animated.timing(gameContainerAnim, {
         toValue: 1,
-        duration: 1000,
+        duration: 800,
         useNativeDriver: true,
       }),
       Animated.timing(congratsAnim, {
@@ -63,10 +68,10 @@ export const useTicTacToeAnimations = (currentPlayer: Player, winner: Player | '
   }, [currentPlayer, animatePlayerTurn]);
 
   useEffect(() => {
-    if (winner) {
+    if (gameComplete) {
       animateGameCompletion();
     }
-  }, [winner, animateGameCompletion]);
+  }, [gameComplete, animateGameCompletion]);
 
   const player1Style = {
     transform: [
@@ -103,7 +108,7 @@ export const useTicTacToeAnimations = (currentPlayer: Player, winner: Player | '
       {
         translateY: gameContainerAnim.interpolate({
           inputRange: [0, 1],
-          outputRange: [0, height * 0.2],
+          outputRange: [0, height],
         }),
       },
     ],
@@ -119,7 +124,7 @@ export const useTicTacToeAnimations = (currentPlayer: Player, winner: Player | '
       {
         translateY: congratsAnim.interpolate({
           inputRange: [0, 1],
-          outputRange: [20, 0],
+          outputRange: [60, 0],
         }),
       },
     ],

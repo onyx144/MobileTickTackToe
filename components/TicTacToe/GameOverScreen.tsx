@@ -55,6 +55,7 @@ useEffect(() => {
           autoPlay
           loop={true}
           style={styles.winGif}
+          speed={0.5}
         />
       )}
      <LinearGradient
@@ -71,7 +72,7 @@ useEffect(() => {
 
       <TouchableOpacity style={styles.playAgainButton} onPress={onPlayAgain} testID="play-again-button">
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          <Text style={styles.playAgainText}>Play again</Text>
+          <Text style={styles.playAgainText}>Play Game Again</Text>
           <Image
             source={require('../../assets/play.png')}
             style={{ width: 24, height: 24, marginLeft: 8 }}
@@ -105,7 +106,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   gameOverText: {
-    fontFamily: 'Fredoka',
+    fontFamily: 'Bangers',
     fontWeight: '600',
     fontSize: 48,
     fontStyle: 'normal',
