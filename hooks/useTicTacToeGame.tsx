@@ -9,7 +9,7 @@ const initialBoard: Board = [
   [null, null, null],
 ];
 
-export const useTicTacToeGame = () => {
+export const useTicTacToeGame = (onMovePlayed?: () => void) => {
   const [gameState, setGameState] = useState<GameState>({
     board: JSON.parse(JSON.stringify(initialBoard)),
     currentPlayer: 'X' as Player,
@@ -186,6 +186,9 @@ function checkWin(board: Board, player: Player) {
         winningLine: result.winningLine,
       });
       
+      // Воспроизводим звук при ходе ИИ
+      onMovePlayed?.();
+      
       if (Platform.OS !== 'web') {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
       }
@@ -215,10 +218,13 @@ function checkWin(board: Board, player: Player) {
     
     setBestMove(null);
     
+    // Воспроизводим звук при ходе игрока
+    onMovePlayed?.();
+    
     if (Platform.OS !== 'web') {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
-  }, [gameState.board, gameState.currentPlayer, gameState.winner, checkWinner]);
+  }, [gameState.board, gameState.currentPlayer, gameState.winner, checkWinner, onMovePlayed]);
 
   const undoLastTwoMoves = useCallback(() => {
     if (history.length < 1) return; // хотя бы два хода в истории

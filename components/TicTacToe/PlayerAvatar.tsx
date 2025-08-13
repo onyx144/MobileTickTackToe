@@ -29,43 +29,52 @@ const PlayerAvatar: React.FC<PlayerAvatarProps> = ({
   boardHeight,
   isFirstPlayer,
 }) => {
-  const isActive = currentPlayer === player && !winner;
+  // Аватар активен если это текущий игрок ИЛИ если игра завершена и это победитель
+  const isActive = (currentPlayer === player && !winner) || (winner === player);
 
   // Показываем фон и звёзды только после подъёма аватара
   const [showBackground, setShowBackground] = useState(false);
 
-  const { activeStars, starTriggers, removeStar } = useAvatarStars(isActive && showBackground, {
+  const { activeStars, starTriggers, removeStar } = useAvatarStars((isActive || winner === player) && showBackground, {
     maxStars: 5,
     minIntervalMs: 500,
     maxIntervalMs: 1500,
   });
 
-  const rotation = useLoopingRotation(isActive && showBackground, { durationMs: 18000 });
-  const blinkingOpacity = useBlinkingOpacity(isActive, { lowOpacity: 0.3, durationMs: 200 });
+  const rotation = useLoopingRotation((isActive || winner === player) && showBackground, { durationMs: 18000 });
+  // Индикатор хода мигает только если игра не завершена
+  const blinkingOpacity = useBlinkingOpacity(isActive && !winner, { lowOpacity: 0.3, durationMs: 200 });
 
   // Очистка звезд при деактивации
   useEffect(() => {
-    if (!isActive || !showBackground) {
+    if ((!isActive && !winner) || !showBackground) {
+      // Удаляем звёзды только если аватар не активен И игра не завершена
       activeStars.forEach(starId => removeStar(starId));
     }
-  }, [isActive, showBackground, activeStars, removeStar]);
+  }, [isActive, showBackground, activeStars, removeStar, winner]);
 
   // После завершения анимации подъёма аватара включаем фон
   useEffect(() => {
     if (isActive) {
       const timer = setTimeout(() => setShowBackground(true), 100); // подстраиваем под длительность animatedStyle
       return () => clearTimeout(timer);
-    } else {
+    } else if (!winner) {
+      // Скрываем фон только если игра не завершена
       setShowBackground(false);
     }
-  }, [isActive]);
+  }, [isActive, winner]);
 
   // Сброс состояния при изменении игрока или сбросе игры
   useEffect(() => {
-    if (!isActive) {
+    if (!isActive && !winner) {
+      // Сбрасываем фон только если аватар не активен И игра не завершена
       setShowBackground(false);
     }
-  }, [currentPlayer, winner]);
+    // При сбросе игры (winner становится null) сбрасываем все состояния
+    if (winner === null) {
+      setShowBackground(false);
+    }
+  }, [currentPlayer, winner, isActive]);
 
   const renderTurnIndicator = () => {
     if (currentPlayer !== player || winner) return null;

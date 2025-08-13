@@ -72,6 +72,9 @@ interface GameBoardProps {
   photo2: any;
   onLayout?: (event: any) => void;
   onMoveCountChange?: (count: number) => void;
+  showHint: boolean;
+  onHintUsed: () => void;
+  onVictory?: () => void;
 }
 
 const GameBoard: React.FC<GameBoardProps> = ({
@@ -83,6 +86,9 @@ const GameBoard: React.FC<GameBoardProps> = ({
   photo2,
   onLayout,
   onMoveCountChange,
+  showHint,
+  onHintUsed,
+  onVictory,
 }) => {
   
   const countMoves = board.flat().filter(cell => cell !== null).length;
@@ -94,7 +100,6 @@ const GameBoard: React.FC<GameBoardProps> = ({
   const intervalRef = useRef<number | null>(null);
   /*Подсказка*/
   
-  const [showHint, setShowHint] = useState(true); 
   const hintScale = useRef(new Animated.Value(1)).current;
   
   // Перезапускаем анимацию при изменении bestMove
@@ -149,6 +154,8 @@ const GameBoard: React.FC<GameBoardProps> = ({
     };
   }, []);
 
+  const [hasPlayedVictorySound, setHasPlayedVictorySound] = useState(false);
+
   useEffect(() => {
     // Stop timer at game over; restart and reset when board becomes empty (new game)
     if (isGameOver(board, winningLine)) {
@@ -156,9 +163,15 @@ const GameBoard: React.FC<GameBoardProps> = ({
         clearInterval(intervalRef.current as number);
         intervalRef.current = null;
       }
+      
+      // Воспроизводим звук победы только один раз при обнаружении победителя
+      if (winningLine && onVictory && !hasPlayedVictorySound) {
+        onVictory();
+        setHasPlayedVictorySound(true);
+      }
     } else if (isBoardEmpty(board)) {
       setElapsedSeconds(0);
-      setShowHint(true); // Сбрасываем hint при новой игре
+      setHasPlayedVictorySound(false); // Сбрасываем флаг при новой игре
       if (intervalRef.current == null) {
         intervalRef.current = setInterval(() => {
           setElapsedSeconds(prev => prev + 1);
@@ -172,7 +185,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
         }, 1000) as unknown as number;
       }
     }
-  }, [board, winningLine]);
+  }, [board, winningLine, onVictory, hasPlayedVictorySound]);
 
   const cellBackgroundOpacity = useRef(new Animated.Value(1)).current;
 
@@ -237,11 +250,18 @@ const GameBoard: React.FC<GameBoardProps> = ({
     const isHighlighted = bestMove && bestMove[0] === row && bestMove[1] === col;
     const backgroundColor = countMoves > 0 ? 'transparent' : '#184BD933';
 
+    const handleCellPress = () => {
+      if (isHintCell) {
+        onHintUsed(); // Отключаем подсказку при нажатии на подсказанную клетку
+      }
+      onCellPress(row, col);
+    };
+
     return (
   <TouchableOpacity
     key={`${row}-${col}`}
     style={{ width: cellSize, height: cellSize }}
-    onPress={() => onCellPress(row, col)}
+    onPress={handleCellPress}
     activeOpacity={0.7}
     testID={`cell-${row}-${col}`}
   >

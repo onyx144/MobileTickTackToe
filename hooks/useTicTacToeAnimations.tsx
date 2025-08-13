@@ -96,12 +96,18 @@ export const useTicTacToeAnimations = (
   }, [playButtonScale]);
 
   useEffect(() => {
-    animatePlayerTurn(currentPlayer);
-  }, [currentPlayer, animatePlayerTurn]);
+    // Анимация смены игроков только если игра не завершена
+    if (!gameComplete) {
+      animatePlayerTurn(currentPlayer);
+    }
+    // При завершении игры анимации аватаров "замораживаются" в текущем положении
+  }, [currentPlayer, animatePlayerTurn, gameComplete]);
 
   useEffect(() => {
     if (gameComplete) {
       animateGameCompletion();
+      // При завершении игры сохраняем текущее состояние аватаров
+      // Анимации смены игроков больше не будут срабатывать
     }
   }, [gameComplete, animateGameCompletion]);
 

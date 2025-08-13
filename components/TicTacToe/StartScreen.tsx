@@ -8,6 +8,7 @@ type StartScreenProps = {
   onStart: () => void;
   playButtonStyle?: any;
   animatePlayButton?: (toValue: number) => void;
+  onStartBackgroundMusic?: () => void;
 };
 
 const { width } = Dimensions.get('window');
@@ -63,7 +64,7 @@ const Clock: React.FC<{ size?: number }> = ({ size = 24 }) => {
   );
 };
 
-const StartScreen: React.FC<StartScreenProps> = ({ onStart, playButtonStyle, animatePlayButton }) => {
+const StartScreen: React.FC<StartScreenProps> = ({ onStart, playButtonStyle, animatePlayButton, onStartBackgroundMusic }) => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const scaleAnimation = useRef(new Animated.Value(1)).current;
   const progressAnimation = useRef(new Animated.Value(0)).current;
@@ -100,6 +101,13 @@ const StartScreen: React.FC<StartScreenProps> = ({ onStart, playButtonStyle, ani
       }).start();
     }
   };
+
+  // Автоматически запускаем фоновую музыку при появлении StartScreen
+  useEffect(() => {
+    if (onStartBackgroundMusic) {
+      onStartBackgroundMusic();
+    }
+  }, [onStartBackgroundMusic]);
 
   useEffect(() => {
     let loop: Animated.CompositeAnimation | null = null;

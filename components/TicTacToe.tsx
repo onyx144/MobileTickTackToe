@@ -18,6 +18,7 @@ import GameOverScreen from './TicTacToe/GameOverScreen';
 import StartScreen from './TicTacToe/StartScreen';
 import { useTicTacToeGame } from '../hooks/useTicTacToeGame';
 import { useTicTacToeAnimations } from '../hooks/useTicTacToeAnimations';
+import { useSound } from '../hooks/useSound';
 
 const { width } = Dimensions.get('window');
 
@@ -43,10 +44,20 @@ const TicTacToe: React.FC<TicTacToeProps> = (props) => {
   const [moveCount, setMoveCount] = useState(0);
   const [boardHeight, setBoardHeight] = useState<number>(0);
   const [hasStarted, setHasStarted] = useState<boolean>(false);
+  const [showHint, setShowHint] = useState<boolean>(false);
 
   const introAnim = useRef(new Animated.Value(0)).current;
 
-  const { gameState, bestMove, gameComplete, handleCellPress, undoLastTwoMoves, resetGame } = useTicTacToeGame();
+  const {
+    playBackgroundMusic,
+    stopBackgroundMusic,
+    playNotificationSound,
+    playVictorySound,
+    pauseBackgroundMusic,
+    resumeBackgroundMusic,
+  } = useSound();
+
+  const { gameState, bestMove, gameComplete, handleCellPress, undoLastTwoMoves, resetGame } = useTicTacToeGame(playNotificationSound);
 
   const {
     player1Style,
@@ -71,6 +82,9 @@ const TicTacToe: React.FC<TicTacToeProps> = (props) => {
     resetAnimations();
     // Сброс анимаций кнопок
     hintScale.setValue(1);
+    setShowHint(false);
+    // Включаем фоновую музыку при новой игре
+    playBackgroundMusic();
   };
 
   useEffect(() => {
@@ -127,6 +141,8 @@ const handleBackToStart = () => {
     introAnim.setValue(0);
     // Сбрасываем анимации аватаров при возврате к стартовому экрану
     resetAnimations();
+    // Останавливаем фоновую музыку при возврате к стартовому экрану
+    stopBackgroundMusic();
   });
 };
 
@@ -172,6 +188,9 @@ const handleBackToStart = () => {
               photo2={photo2}
               onMoveCountChange={setMoveCount}
               onLayout={(event) => setBoardHeight(event.nativeEvent.layout.height)}
+              showHint={showHint}
+              onHintUsed={() => setShowHint(false)}
+              onVictory={playVictorySound}
             />
 
             <View style={{ marginLeft: 20 }}>
@@ -206,12 +225,13 @@ const handleBackToStart = () => {
   </TouchableOpacity>
 </Animated.View>
 
-          <Animated.View style={[styles.hintButton, hintAnimatedStyle]}>
-  <TouchableOpacity
-    activeOpacity={1}
-    onPressIn={() => animateHintButton(0.9)}   // при нажатии уменьшается
-    onPressOut={() => animateHintButton(1)}   // при отпускании возвращается
-  >
+                     <Animated.View style={[styles.hintButton, hintAnimatedStyle]}>
+   <TouchableOpacity
+     activeOpacity={1}
+     onPressIn={() => animateHintButton(0.9)}   // при нажатии уменьшается
+     onPressOut={() => animateHintButton(1)}   // при отпускании возвращается
+     onPress={() => setShowHint(true)}
+   >
     <View style={styles.hintGlow}>
       <View style={styles.hintBorder}>
         <LinearGradient
@@ -224,6 +244,8 @@ const handleBackToStart = () => {
     </View>
   </TouchableOpacity>
 </Animated.View>
+
+
         </View>
 
         {moveCount >= 2 && (
@@ -253,14 +275,19 @@ const handleBackToStart = () => {
         winGif={winGif}
         onPlayAgain={handleResetGame}
         animatedStyle={congratsContainerStyle}
+        onPauseBackground={pauseBackgroundMusic}
+        onResumeBackground={resumeBackgroundMusic}
       />
       {!hasStarted && (
         <View style={styles.startScreenContainer}>
-          <StartScreen 
-            onStart={() => setHasStarted(true)} 
-            playButtonStyle={playButtonStyle}
-            animatePlayButton={animatePlayButton}
-          />
+                  <StartScreen 
+          onStart={() => {
+            setHasStarted(true);
+          }} 
+          playButtonStyle={playButtonStyle}
+          animatePlayButton={animatePlayButton}
+          onStartBackgroundMusic={playBackgroundMusic}
+        />
         </View>
       )}
     </ImageBackground>
@@ -269,7 +296,7 @@ const handleBackToStart = () => {
 
 const styles = StyleSheet.create({
   container: { flex: 1, width: '100%', height: '100%' },
-  backIcon: { width: 70, height: 70 },
+  backIcon: { width: 75, height: 75 },
   imageContainer: {
     position: 'absolute',
     top: '20%',
@@ -343,6 +370,7 @@ const styles = StyleSheet.create({
    },
   iconButton: { padding: 6 },
   topIconQuest: { width: 110, height: 110 },
+
 });
 
 export default TicTacToe;
