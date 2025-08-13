@@ -75,6 +75,7 @@ interface GameBoardProps {
   showHint: boolean;
   onHintUsed: () => void;
   onVictory?: () => void;
+  onBotVictory?: () => void;
 }
 
 const GameBoard: React.FC<GameBoardProps> = ({
@@ -89,6 +90,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
   showHint,
   onHintUsed,
   onVictory,
+  onBotVictory,
 }) => {
   
   const countMoves = board.flat().filter(cell => cell !== null).length;
@@ -165,8 +167,18 @@ const GameBoard: React.FC<GameBoardProps> = ({
       }
       
       // Воспроизводим звук победы только один раз при обнаружении победителя
-      if (winningLine && onVictory && !hasPlayedVictorySound) {
-        onVictory();
+      if (winningLine && !hasPlayedVictorySound) {
+        // Определяем кто выиграл по первой ячейке выигрышной линии
+        const [winRow, winCol] = winningLine[0];
+        const winner = board[winRow][winCol];
+        
+        if (winner === 'X' && onVictory) {
+          // Победил первый игрок (X)
+          onVictory();
+        } else if (winner === 'O' && onBotVictory) {
+          // Победил бот (O)
+          onBotVictory();
+        }
         setHasPlayedVictorySound(true);
       }
     } else if (isBoardEmpty(board)) {
@@ -185,7 +197,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
         }, 1000) as unknown as number;
       }
     }
-  }, [board, winningLine, onVictory, hasPlayedVictorySound]);
+  }, [board, winningLine, onVictory, onBotVictory, hasPlayedVictorySound]);
 
   const cellBackgroundOpacity = useRef(new Animated.Value(1)).current;
 

@@ -1,8 +1,9 @@
-import React, { useEffect, useRef , useState } from 'react';
-import { View, Text, Image, StyleSheet, Dimensions, Animated  } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, Image, StyleSheet, Dimensions, Animated } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Player } from '@/types/tic-tac-toe';
 import { AnimatedStar, useBlinkingOpacity, useLoopingRotation, useAvatarStars } from './Animation';
+
 const { width } = Dimensions.get('window');
 const AVATAR_SIZE = 60;
 
@@ -29,55 +30,39 @@ const PlayerAvatar: React.FC<PlayerAvatarProps> = ({
   boardHeight,
   isFirstPlayer,
 }) => {
-  // Аватар активен если это текущий игрок ИЛИ если игра завершена и это победитель
-  const isActive = (currentPlayer === player && !winner) || (winner === player);
+  // Победитель остаётся поднятым
+  const isActive = (!winner && currentPlayer === player) || winner === player;
 
-  // Показываем фон и звёзды только после подъёма аватара
   const [showBackground, setShowBackground] = useState(false);
 
-  const { activeStars, starTriggers, removeStar } = useAvatarStars((isActive || winner === player) && showBackground, {
+  const { activeStars, starTriggers, removeStar } = useAvatarStars(isActive && showBackground, {
     maxStars: 5,
     minIntervalMs: 500,
     maxIntervalMs: 1500,
   });
 
-  const rotation = useLoopingRotation((isActive || winner === player) && showBackground, { durationMs: 18000 });
-  // Индикатор хода мигает только если игра не завершена
-  const blinkingOpacity = useBlinkingOpacity(isActive && !winner, { lowOpacity: 0.3, durationMs: 200 });
+  const rotation = useLoopingRotation(isActive && showBackground, { durationMs: 18000 });
+  const blinkingOpacity = useBlinkingOpacity(!winner && currentPlayer === player, { lowOpacity: 0.3, durationMs: 200 });
 
   // Очистка звезд при деактивации
   useEffect(() => {
-    if ((!isActive && !winner) || !showBackground) {
-      // Удаляем звёзды только если аватар не активен И игра не завершена
+    if (!isActive || !showBackground) {
       activeStars.forEach(starId => removeStar(starId));
     }
-  }, [isActive, showBackground, activeStars, removeStar, winner]);
+  }, [isActive, showBackground, activeStars, removeStar]);
 
-  // После завершения анимации подъёма аватара включаем фон
+  // Включаем фон после анимации подъёма аватара
   useEffect(() => {
     if (isActive) {
-      const timer = setTimeout(() => setShowBackground(true), 100); // подстраиваем под длительность animatedStyle
+      const timer = setTimeout(() => setShowBackground(true), 100);
       return () => clearTimeout(timer);
-    } else if (!winner) {
-      // Скрываем фон только если игра не завершена
+    } else {
       setShowBackground(false);
     }
-  }, [isActive, winner]);
-
-  // Сброс состояния при изменении игрока или сбросе игры
-  useEffect(() => {
-    if (!isActive && !winner) {
-      // Сбрасываем фон только если аватар не активен И игра не завершена
-      setShowBackground(false);
-    }
-    // При сбросе игры (winner становится null) сбрасываем все состояния
-    if (winner === null) {
-      setShowBackground(false);
-    }
-  }, [currentPlayer, winner, isActive]);
+  }, [isActive]);
 
   const renderTurnIndicator = () => {
-    if (currentPlayer !== player || winner) return null;
+    if (!(!winner && currentPlayer === player)) return null;
 
     return (
       <View style={styles.turnIndicatorAboveAvatar}>
@@ -85,7 +70,7 @@ const PlayerAvatar: React.FC<PlayerAvatarProps> = ({
           style={[
             styles.turnTextAboveAvatar,
             player === 'O' && styles.turnTextSecondPlayer,
-            { opacity: blinkingOpacity }, // мигание только индикатора хода
+            { opacity: blinkingOpacity },
           ]}
         >
           {player === 'X' ? 'Your turn' : `${name}'s turn`}
@@ -121,7 +106,7 @@ const PlayerAvatar: React.FC<PlayerAvatarProps> = ({
         )}
 
         <View style={styles.contentContainer}>
-          {/* Фон и звёзды только после подъёма аватара */}
+          {/* Фон и звёзды для активного игрока или победителя */}
           {isActive && showBackground && (
             <Animated.View
               pointerEvents="none"
@@ -143,7 +128,7 @@ const PlayerAvatar: React.FC<PlayerAvatarProps> = ({
                 source={isFirstPlayer ? require('@/assets/bg_player.png') : require('@/assets/bg_player2.png')}
                 style={styles.bgImage}
               />
-              {activeStars.map((starId) => (
+              {activeStars.map(starId => (
                 <AnimatedStar
                   key={starId}
                   isActive={starTriggers.includes(starId)}
@@ -157,20 +142,31 @@ const PlayerAvatar: React.FC<PlayerAvatarProps> = ({
           {renderTurnIndicator()}
 
           <Animated.View
-            style={[
-              styles.avatarContainer,
-              currentPlayer === player
-                ? isFirstPlayer
-                  ? styles.activeFirstPlayerContainer
-                  : styles.activeSecondPlayerContainer
-                : isFirstPlayer
-                ? styles.firstPlayerAvatar
-                : styles.secondPlayerAvatar,
-              animatedStyle,
-            ]}
-          >
-            <Image source={photo} style={styles.avatar} />
-          </Animated.View>
+  style={[
+    styles.avatarContainer,
+    // Определяем позицию контейнера (цвет рамки, фон и т.п.)
+    currentPlayer === player || winner === player
+      ? isFirstPlayer
+        ? styles.activeFirstPlayerContainer
+        : styles.activeSecondPlayerContainer
+      : isFirstPlayer
+      ? styles.firstPlayerAvatar
+      : styles.secondPlayerAvatar,
+
+     winner
+      ? {
+          transform: [
+            {
+              translateY: winner === player ? -40 : 10, // победитель сверху, проигравший снизу
+            },
+          ],
+          borderWidth: winner === player ? 6 : 3, 
+        }
+      : animatedStyle, // обычная анимация в процессе игры
+  ]}
+>
+  <Image source={photo} style={styles.avatar} />
+</Animated.View>
 
           <Text style={styles.playerName}>{name}</Text>
         </View>
@@ -195,7 +191,6 @@ const styles = StyleSheet.create({
   contentContainer: {
     alignItems: 'center',
     minWidth: AVATAR_SIZE * 1.5,
-
     justifyContent: 'flex-end',
   },
   avatarContainer: {
@@ -204,13 +199,6 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     zIndex: 801,
     position: 'relative',
-  },
-  activeAvatar: {
-    shadowColor: '#00CCFF',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.8,
-    shadowRadius: 10,
-    elevation: 10,
   },
   avatar: {
     width: AVATAR_SIZE,
@@ -236,8 +224,8 @@ const styles = StyleSheet.create({
   },
   playerName: {
     color: 'white',
-     fontFamily: 'Fredoka',
-     textTransform: 'uppercase',
+    fontFamily: 'Fredoka',
+    textTransform: 'uppercase',
     width: '100%',
     fontStyle: 'normal',
     textShadowColor: 'rgba(0, 0, 0, 0.5)',
@@ -257,8 +245,8 @@ const styles = StyleSheet.create({
   turnTextAboveAvatar: {
     color: '#FFE97C',
     fontFamily: 'Fredoka',
-     fontSize: 15,
-    lineHeight: 18.3, // 15 * 1.22 = 18.3
+    fontSize: 15,
+    lineHeight: 18.3,
     letterSpacing: 0,
     width: 100,
     height: 'auto',
@@ -269,8 +257,6 @@ const styles = StyleSheet.create({
     textShadowRadius: 4,
   },
   turnTextSecondPlayer: {
-    fontFamily: 'Fredoka',
-     fontStyle: 'normal',
     color: 'white',
     textShadowColor: '#B14EFF',
     textShadowOffset: { width: 0, height: 0 },
@@ -290,37 +276,6 @@ const styles = StyleSheet.create({
     borderRadius: 50,
     borderWidth: 3,
     borderColor: '#ADEFFF',
-  },
-  raysContainer: {
-    position: 'absolute',
-    top: 0,
-    zIndex: 99999,
-    left: 0,
-    right: 0,
-    height: AVATAR_SIZE + 20,
-    width: AVATAR_SIZE + 20,
-    bottom: 0,
-    borderRadius: AVATAR_SIZE,
-    backgroundColor: 'rgba(253, 248, 141, 0.4)', // светло-жёлтый glow
-    shadowColor: '#FFF174',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.9,
-    shadowRadius: 20,
-    elevation: 20,
-  },
-  rotatingBackground: {
-    position: 'absolute',
-    top: -60,
-    left: -10,
-    width: AVATAR_SIZE + 50,
-    height: AVATAR_SIZE + 50,
-    zIndex: 800,
-    overflow: 'hidden',
-  },
-  bgImage: {
-    width: '100%',
-    height: '100%',
-    overflow: 'hidden',
   },
   activeFirstPlayerContainer: {
     borderRadius: 50,
@@ -342,6 +297,20 @@ const styles = StyleSheet.create({
     position: 'relative',
     borderWidth: 6,
     borderColor: '#B5F1FF',
+  },
+  rotatingBackground: {
+    position: 'absolute',
+    top: -60,
+    left: -10,
+    width: AVATAR_SIZE + 50,
+    height: AVATAR_SIZE + 50,
+    zIndex: 800,
+    overflow: 'hidden',
+  },
+  bgImage: {
+    width: '100%',
+    height: '100%',
+    overflow: 'hidden',
   },
 });
 

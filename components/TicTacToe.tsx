@@ -9,6 +9,7 @@ import {
   ImageBackground,
   TouchableOpacity,
 } from 'react-native';
+import { StoreIcon } from '@/assets/svg/store-icon';
 import { LinearGradient } from 'expo-linear-gradient';
 import BackIcon from '@/assets/svg/back-icon';
 import { TicTacToeProps } from '@/types/tic-tac-toe';
@@ -45,14 +46,19 @@ const TicTacToe: React.FC<TicTacToeProps> = (props) => {
   const [boardHeight, setBoardHeight] = useState<number>(0);
   const [hasStarted, setHasStarted] = useState<boolean>(false);
   const [showHint, setShowHint] = useState<boolean>(false);
+  const [isLoadingStory, setIsLoadingStory] = useState<boolean>(false);
+  const [storyLoaded, setStoryLoaded] = useState<boolean>(false);
 
   const introAnim = useRef(new Animated.Value(0)).current;
+  const storyProgressAnimation = useRef(new Animated.Value(0)).current;
+  const storyLoadingIconRotation = useRef(new Animated.Value(0)).current;
 
   const {
     playBackgroundMusic,
     stopBackgroundMusic,
     playNotificationSound,
     playVictorySound,
+    playSadGameSound,
     pauseBackgroundMusic,
     resumeBackgroundMusic,
   } = useSound();
@@ -83,6 +89,11 @@ const TicTacToe: React.FC<TicTacToeProps> = (props) => {
     // Сброс анимаций кнопок
     hintScale.setValue(1);
     setShowHint(false);
+    // Сброс состояния истории
+    setIsLoadingStory(false);
+    setStoryLoaded(false);
+    storyProgressAnimation.setValue(0);
+    storyLoadingIconRotation.setValue(0);
     // Включаем фоновую музыку при новой игре
     playBackgroundMusic();
   };
@@ -100,6 +111,49 @@ const TicTacToe: React.FC<TicTacToeProps> = (props) => {
       });
     }
   }, [hasStarted, introAnim, resetAnimations]);
+
+  // Автоматически запускаем загрузку истории при старте игры
+   
+   useEffect(() => {
+    if (hasStarted && !storyLoaded) {
+      setIsLoadingStory(true);
+      storyProgressAnimation.setValue(0);
+      storyLoadingIconRotation.setValue(0);
+      
+      // Анимация вращения иконки загрузки
+      const rotationLoop = Animated.loop(
+        Animated.timing(storyLoadingIconRotation, {
+          toValue: 1,
+          duration: 1200,
+          useNativeDriver: true,
+        })
+      );
+      rotationLoop.start();
+
+      // Анимация прогресса загрузки
+      Animated.timing(storyProgressAnimation, {
+        toValue: 1,
+        duration: 3000,
+        useNativeDriver: false,
+      }).start(({ finished }) => {
+        if (finished) {
+          setIsLoadingStory(false);
+          setStoryLoaded(true);
+          rotationLoop.stop();
+        }
+      });
+    }
+  }, [hasStarted, storyLoaded]); 
+
+  const storyProgressWidth = storyProgressAnimation.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0%', '100%'],
+  });
+
+  const handlePlayStory = () => {
+    // Здесь можно добавить логику для воспроизведения истории
+    console.log('Playing story...');
+  };
 
   const introStyle = {
     opacity: introAnim,
@@ -141,6 +195,11 @@ const handleBackToStart = () => {
     introAnim.setValue(0);
     // Сбрасываем анимации аватаров при возврате к стартовому экрану
     resetAnimations();
+    // Сбрасываем состояние истории
+    setIsLoadingStory(false);
+    setStoryLoaded(false);
+    storyProgressAnimation.setValue(0);
+    storyLoadingIconRotation.setValue(0);
     // Останавливаем фоновую музыку при возврате к стартовому экрану
     stopBackgroundMusic();
   });
@@ -191,6 +250,7 @@ const handleBackToStart = () => {
               showHint={showHint}
               onHintUsed={() => setShowHint(false)}
               onVictory={playVictorySound}
+              onBotVictory={() => playSadGameSound()}
             />
 
             <View style={{ marginLeft: 20 }}>
@@ -224,6 +284,81 @@ const handleBackToStart = () => {
     <BackIcon />
   </TouchableOpacity>
 </Animated.View>
+
+        {/* Центральная часть topbar */}
+        {hasStarted && (
+          <View style={styles.centerTopBar}>
+            {isLoadingStory ? (
+              <View style={styles.storyLoadingContainer}>
+              {/* Внешний градиент как бордер */}
+              <LinearGradient
+                colors={['#7500D1', '#C780FF']} // градиент бордера
+                start={{ x: 0, y: 0.5 }}
+                end={{ x: 1, y: 0.5 }}
+                style={styles.storyProgressBarBorder}
+              >
+                {/* Внутренний контейнер с padding для "бордера" */}
+                <View style={styles.storyProgressInner}>
+                  {/* Фон незаполненной линии — другой цвет */}
+                  <View style={styles.storyProgressTrack}>
+                    {/* Заполненный прогресс */}
+                    <Animated.View style={[styles.storyProgressFillWrapper, { width: storyProgressWidth }]}>
+                      <LinearGradient
+                        colors={['#7500D1', '#7500D1']} // градиент заполненной части
+                        start={{ x: 0, y: 0.5 }}
+                        end={{ x: 1, y: 0.5 }}
+                        style={StyleSheet.absoluteFill}
+                      />
+                    </Animated.View>
+          
+                    {/* Контент поверх прогресса */}
+                    <View style={styles.storyProgressContentOverlay} pointerEvents="none">
+                      <View style={styles.storyLoadingRowInsideBar}>
+                        <Animated.Image
+                          source={require('@/assets/clock.png')}
+                          style={{
+                            width: 24,
+                            height: 24,
+                            marginRight: 8,
+                            transform: [
+                              {
+                                rotate: storyLoadingIconRotation.interpolate({
+                                  inputRange: [0, 1],
+                                  outputRange: ['0deg', '360deg'],
+                                }),
+                              },
+                            ],
+                          }}
+                          resizeMode="contain"
+                        />
+                        <Text style={styles.storyLoadingTextInside}>Loading story...</Text>
+                      </View>
+                    </View>
+                  </View>
+                </View>
+              </LinearGradient>
+            </View>
+            ) : storyLoaded ? (
+              <TouchableOpacity
+                style={styles.playStoryButton}
+                onPress={handlePlayStory}
+                activeOpacity={0.8}
+              >
+                <LinearGradient
+                  colors={['#C780FF', '#7500D1']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 0, y: 1 }}
+                  style={styles.playStoryButtonGradient}
+                >
+                  <Text style={styles.playStoryText}>Play story</Text>
+                  <View style={styles.playStoryIconContainer}>
+                    <StoreIcon />
+                  </View>
+                </LinearGradient>
+              </TouchableOpacity>
+            ) : null}
+          </View>
+        )}
 
                      <Animated.View style={[styles.hintButton, hintAnimatedStyle]}>
    <TouchableOpacity
@@ -328,6 +463,11 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.8,
    },
+   storyProgressInner: {
+    flex: 1,
+    borderRadius: 18,
+    overflow: 'hidden',
+  },
   hintBorder: {
     width: 40,
     height: 40,
@@ -370,6 +510,99 @@ const styles = StyleSheet.create({
    },
   iconButton: { padding: 6 },
   topIconQuest: { width: 110, height: 110 },
+  centerTopBar: {
+    position: 'absolute',
+     left: 0,
+    right: 0,
+    height: 50,
+    transform: [{ translateY: -26 }],
+     top: 54,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 980,
+   },
+  storyLoadingContainer: {
+    width: 420,
+    height: 28,
+    borderRadius: 20,
+    overflow: 'hidden',
+  },
+  storyProgressBarBorder: {
+    width: '100%',
+    height: '100%',
+    zIndex: 1000,
+    borderRadius: 20,
+   padding: 2,
+  },
+  storyProgressTrack: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 20,
+    backgroundColor: 'rgba(111, 0, 255, 0.2)',
+  },
+  storyProgressFillWrapper: {
+    height: '100%',
+    borderRadius: 20,
+    overflow: 'hidden',
+  },
+  storyProgressFill: {
+    height: '100%',
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+  },
+  storyProgressContentOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1,
+  },
+  storyLoadingRowInsideBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  storyLoadingTextInside: {
+    color: '#FFF',
+    fontSize: 12,
+    fontFamily: 'FredokaSemiBold',
+  },
+  playStoryButton: {
+    width: 212,
+     borderRadius: 25,
+    justifyContent: 'center',
+    alignItems: 'center',
+    flexDirection: 'row',
+    borderWidth: 3,
+    borderColor: '#C57CFF',
+    shadowColor: '#9021E8CC',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 1,
+    shadowRadius: 25,
+    elevation: 10,
+  },
+  playStoryButtonGradient: {
+    flex: 1,
+    height: 52,
+    flexDirection: 'row',
+    justifyContent: 'center',
+     borderRadius: 22,
+     paddingTop: 12,
+   },
+  playStoryText: {
+    color: '#FFF',
+    fontSize: 18,
+    fontFamily: 'Fredoka',
+    marginRight: 10,
+  },
+  playStoryIconContainer: {
+    width: 24,
+    height: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
 
 });
 

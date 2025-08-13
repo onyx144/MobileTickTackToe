@@ -168,10 +168,12 @@ const styles = StyleSheet.create({
   centeredTextWrapper: {
     justifyContent: 'center',
     alignItems: 'center',
-  },
+      minWidth: 400,
+   },
   gameOverText: {
     fontFamily: 'Fredoka',
     fontWeight: '600',
+    width: '100%',
     fontSize: 48,
     height: 50,
      fontStyle: 'normal',

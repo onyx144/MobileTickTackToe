@@ -5,6 +5,7 @@ export const useSound = () => {
   const backgroundMusic = useRef<Audio.Sound | null>(null);
   const notificationSound = useRef<Audio.Sound | null>(null);
   const victorySound = useRef<Audio.Sound | null>(null);
+  const sadGameSound = useRef<Audio.Sound | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
@@ -72,6 +73,20 @@ export const useSound = () => {
          } catch (error) {
          }
 
+        // Загружаем звук проигрыша бота
+        try {
+          const { sound: sadSound } = await Audio.Sound.createAsync(
+            require('../assets/sounds/sad-game.mp3'),
+            { 
+              isLooping: false,
+              volume: 0.8,
+              shouldPlay: false
+            }
+          );
+          sadGameSound.current = sadSound;
+         } catch (error) {
+         }
+
         setIsInitialized(true);
        } catch (error) {
          setIsInitialized(false);
@@ -92,6 +107,9 @@ export const useSound = () => {
           }
           if (victorySound.current) {
             await victorySound.current.unloadAsync();
+          }
+          if (sadGameSound.current) {
+            await sadGameSound.current.unloadAsync();
           }
         } catch (error) {
          }
@@ -149,6 +167,18 @@ export const useSound = () => {
     }
   };
 
+  const playSadGameSound = async () => {
+    try {
+      if (sadGameSound.current && isInitialized) {
+        // Сбрасываем позицию перед воспроизведением
+        await sadGameSound.current.setPositionAsync(0);
+        await sadGameSound.current.playAsync();
+      }
+    } catch (error) {
+      // Ошибка воспроизведения звука проигрыша
+    }
+  };
+
   const pauseBackgroundMusic = async () => {
     try {
       if (backgroundMusic.current && isInitialized) {
@@ -174,6 +204,7 @@ export const useSound = () => {
     stopBackgroundMusic,
     playNotificationSound,
     playVictorySound,
+    playSadGameSound,
     pauseBackgroundMusic,
     resumeBackgroundMusic,
     isInitialized,
