@@ -14,7 +14,7 @@ import GameBoard from './TicTacToe/GameBoard';
 import PlayerAvatar from './TicTacToe/PlayerAvatar';
 import GameOverScreen from './TicTacToe/GameOverScreen';
 import StartScreen from './TicTacToe/StartScreen';
-import { useTicTacToeGame } from '../hooks/useTicTacToeGame';
+import { useTicTacToeGame   } from '../hooks/useTicTacToeGame';
 import { useTicTacToeAnimations } from '../hooks/useTicTacToeAnimations';
 
 const { width } = Dimensions.get('window');
@@ -37,11 +37,11 @@ const TicTacToe: React.FC<TicTacToeProps> = (props) => {
     photo2 = DEFAULT_PROPS.photo2,
     winGif = DEFAULT_PROPS.winGif,
   } = props;
-
+  const [moveCount, setMoveCount] = useState(0);
   const [boardHeight, setBoardHeight] = useState<number>(0);
   const [hasStarted, setHasStarted] = useState<boolean>(false);
   const introAnim = useRef(new Animated.Value(0)).current;
-  const { gameState, bestMove, gameComplete, handleCellPress, resetGame } = useTicTacToeGame();
+  const { gameState, bestMove, gameComplete, handleCellPress, undoLastTwoMoves , resetGame } = useTicTacToeGame();
   
   const {
     player1Style,
@@ -124,6 +124,7 @@ const TicTacToe: React.FC<TicTacToeProps> = (props) => {
                 bestMove={bestMove}
                 photo1={photo1}
                 photo2={photo2}
+                onMoveCountChange={setMoveCount}
                 onLayout={(event) => setBoardHeight(event.nativeEvent.layout.height)}
               />
             <View style={{ marginLeft: 20 }}>
@@ -160,15 +161,17 @@ const TicTacToe: React.FC<TicTacToeProps> = (props) => {
           />
         </TouchableOpacity>
       </View>
-      <View style={styles.imageContainer} pointerEvents="box-none">
-        <TouchableOpacity activeOpacity={0.8} testID="back-button">
-          <Image
-            source={require('../assets/back_board.png')}
-            style={styles.backIcon}
-            resizeMode="contain"
-          />
-        </TouchableOpacity>
-        </View>
+      {moveCount >= 2 && (
+  <View style={styles.imageContainer} pointerEvents="box-none">
+    <TouchableOpacity onPress={undoLastTwoMoves} activeOpacity={0.8} testID="back-button">
+      <Image
+        source={require('../assets/back_board.png')}
+        style={styles.backIcon}
+        resizeMode="contain"
+      />
+    </TouchableOpacity>
+  </View>
+)}
       </Animated.View>
 
      

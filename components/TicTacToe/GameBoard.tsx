@@ -56,6 +56,7 @@ const AnimatedAvatar: React.FC<AnimatedAvatarProps> = ({ source, row, col, style
               { translateX },
               { scale }
             ],
+            borderRadius: (cellSize * 0.8) / 2, 
           },
         ]}
       />
@@ -70,6 +71,7 @@ interface GameBoardProps {
   photo1: any;
   photo2: any;
   onLayout?: (event: any) => void;
+  onMoveCountChange?: (count: number) => void;
 }
 
 const GameBoard: React.FC<GameBoardProps> = ({
@@ -80,8 +82,14 @@ const GameBoard: React.FC<GameBoardProps> = ({
   photo1,
   photo2,
   onLayout,
+  onMoveCountChange,
 }) => {
   
+  const countMoves = board.flat().filter(cell => cell !== null).length;
+
+  useEffect(() => {
+    onMoveCountChange?.(countMoves);
+  }, [countMoves]);
   const [elapsedSeconds, setElapsedSeconds] = useState<number>(0);
   const intervalRef = useRef<number | null>(null);
   /*Подсказка*/
@@ -166,6 +174,10 @@ const GameBoard: React.FC<GameBoardProps> = ({
     }
   }, [board, winningLine]);
 
+  const cellBackgroundOpacity = useRef(new Animated.Value(1)).current;
+
+// Следим за количеством ходов
+
   const minutes = Math.floor(elapsedSeconds / 60).toString().padStart(2, '0');
   const seconds = (elapsedSeconds % 60).toString().padStart(2, '0');
   const { width, height } = useWindowDimensions();
@@ -223,50 +235,68 @@ const GameBoard: React.FC<GameBoardProps> = ({
       ([r, c]) => r === row && c === col
     );
     const isHighlighted = bestMove && bestMove[0] === row && bestMove[1] === col;
+    const backgroundColor = countMoves > 0 ? 'transparent' : '#184BD933';
 
     return (
-      <TouchableOpacity
-  key={`${row}-${col}`}
-  style={[
-    styles.cell,
-    { width: cellSize, height: cellSize },
-  ]}
-  onPress={() => onCellPress(row, col)}
-  activeOpacity={0.7}
-  testID={`cell-${row}-${col}`}
->
-  {isWinningCell && (
-    <>
-      <VictoryGlow />
-      <WinningCellEffects isActive={true} isFirstPlayer={cell === 'X'} />
-    </>
-  )}
+  <TouchableOpacity
+    key={`${row}-${col}`}
+    style={{ width: cellSize, height: cellSize }}
+    onPress={() => onCellPress(row, col)}
+    activeOpacity={0.7}
+    testID={`cell-${row}-${col}`}
+  >
+    <View
+        style={[
+          styles.cell,
+          { width: cellSize, height: cellSize, backgroundColor },
+        ]}
+      >
+      {isWinningCell && (
+        <>
+          <VictoryGlow />
+          <WinningCellEffects isActive={true} isFirstPlayer={cell === 'X'} />
+        </>
+      )}
 
-  {cell === 'X' && (
-    <AnimatedAvatar
-      source={photo1}
-      row={row}
-      col={col}
-      cellSize={cellSize}
-      style={[styles.photo1Cell, { width: cellSize * 0.8, height: cellSize * 0.8, borderRadius: (cellSize * 0.8) / 2 }]}
-    />
-  )}
-  {cell === 'O' && (
-    <AnimatedAvatar
-      source={photo2}
-      row={row}
-      col={col}
-      cellSize={cellSize}
-      style={[styles.photo2Cell, { width: cellSize * 0.8, height: cellSize * 0.8, borderRadius: (cellSize * 0.8) / 2 }]}
-    />
-  )}
-  {isHintCell && (
+      {cell === 'X' && (
+        <AnimatedAvatar
+          source={photo1}
+          row={row}
+          col={col}
+          cellSize={cellSize}
+          style={[
+            styles.photo1Cell,
+            {
+              width: cellSize * 0.8,
+              height: cellSize * 0.8,
+              borderRadius: (cellSize * 0.8) / 2,
+            },
+          ]}
+        />
+      )}
+      {cell === 'O' && (
+        <AnimatedAvatar
+          source={photo2}
+          row={row}
+          col={col}
+          cellSize={cellSize}
+          style={[
+            styles.photo2Cell,
+            {
+              width: cellSize * 0.8,
+              height: cellSize * 0.8,
+              borderRadius: (cellSize * 0.8) / 2,
+            },
+          ]}
+        />
+      )}
+      {isHintCell && (
         <Animated.View
           style={[
             styles.hintBackground,
             {
               position: 'absolute',
-              left: '40%', // центрируем иконку в клетке
+              left: '40%',
               top: '40%',
               transform: [{ scale: hintScale }],
               zIndex: 10,
@@ -276,18 +306,26 @@ const GameBoard: React.FC<GameBoardProps> = ({
           <StarAdvise width={16} height={16} />
         </Animated.View>
       )}
-</TouchableOpacity>
+    </View>
+  </TouchableOpacity>
     );
   };
-  const countMoves = board.flat().filter(cell => cell !== null).length;
-const currentPlayer = countMoves % 2 === 0 ? 'X' : 'O';
+ const currentPlayer = countMoves % 2 === 0 ? 'X' : 'O';
   const hintCell = getHintCell();
   const hintVisible = showHint && hintCell !== null && currentPlayer === 'X';
   const hintPosition = hintCell ? {
     left: hintCell[1] * cellSize  + (cellSize - 15) / 2, 
     top: hintCell[0] * cellSize + (cellSize - 15) / 2,
   } : null;
-
+  useEffect(() => {
+    if (countMoves === 1) {
+      Animated.timing(cellBackgroundOpacity, {
+        toValue: 0,
+        duration: 100, // та же скорость что и в AnimatedAvatar
+        useNativeDriver: true,
+      }).start();
+    }
+  }, [countMoves]);
 
   return (
     <View style={[styles.board, { width: cellSize * 3 + 10, height: cellSize * 3 + 10 }]} testID="game-board" onLayout={onLayout}>
@@ -296,43 +334,52 @@ const currentPlayer = countMoves % 2 === 0 ? 'X' : 'O';
           <Animated.Text style={styles.timerText}>{minutes}:{seconds}</Animated.Text>
         </View>
       </View>
-      
+      {[1,2].map(i => (
+    <LinearGradient
+      key={`h-${i}`}
+      colors={['#00CCFF', '#00CCFF']}
+      style={{
+        position: 'absolute',
+        zIndex: 999999,
+        top: i*cellSize - 1, // минус половина толщины линии
+        left: 0,
+        width: cellSize*3,
+        height: 2, // толщина линии
+      }}
+    />
+  ))}
+  {[1,2].map(i => (
+    <LinearGradient
+      key={`v-${i}`}
+      colors={[
+        'rgba(183, 0, 255, 0)',       // 0% — прозрачный фиолетовый
+        '#00CCFF',                    // 20.5% — яркий голубой
+        '#00CCFF',                    // 76% — тот же голубой
+        'rgba(183, 0, 255, 0)', // 100%
+       ]}
+       start={{ x: 0, y: 0 }}
+       end={{ x: 0, y: 1 }} 
+       locations={[0, 0.3, 0.9, 1]}
+      style={{
+        position: 'absolute',
+        left: i*cellSize - 1,
+        top: 0,
+        width: 2,
+        height: cellSize*3,
+      }}
+    />
+  ))}
+
 
       {board.map((row, rowIndex) => (
         <View key={`row-${rowIndex}`} style={styles.row}>
           {row.map((_, colIndex) => (
             <View key={`cell-${rowIndex}-${colIndex}`} style={styles.cellWrapper}>
               {renderCell(rowIndex, colIndex)}
-              {colIndex < 2 && ( 
-               <LinearGradient
-               colors={[
-                'rgba(183, 0, 255, 0)',       // 0% — прозрачный фиолетовый
-                '#00CCFF',                    // 20.5% — яркий голубой
-                '#00CCFF',                    // 76% — тот же голубой
-                'rgba(183, 0, 255, 0.6)', // 100%
-               ]}
-               start={{ x: 0, y: 0.5 }}
-               end={{ x: 1, y: 0.5 }}
-               locations={[0, 0.205, 0.76, 1]}
-               style={[styles.verticalLine, { height: cellSize }]}
-             />
-              )}
+               
             </View>
           ))}
-          {rowIndex < 2 && (
-            <LinearGradient
-            colors={[
-                'rgba(183, 0, 255, 0)', // 0%
-                '#00CCFF',              // 20.5%
-                '#00CCFF',              // 76%
-                'rgba(183, 0, 255, 0)', // 100%
-              ]}
-              start={{ x: 0.5, y: 0 }}
-              end={{ x: 0.5, y: 1 }}
-              locations={[0, 0.205, 0.76, 1]}
-              style={[styles.horizontalLine, { width: cellSize * 3 + 6 }]}
-            />
-          )}
+           
         </View>
       ))}
     </View>
@@ -356,9 +403,10 @@ const styles = StyleSheet.create({
     margin: 3,
     backgroundColor: '#184BD933',
     borderRadius: 20,
+    overflow: 'hidden', 
   },
   cellImage: {
-  },
+   },
   timerContainer: {
     position: 'absolute',
     top: 0,
@@ -392,6 +440,7 @@ const styles = StyleSheet.create({
     zIndex: 0,
     overflow: 'hidden',
   },
+  
   bgImage: {
     width: '100%',
     height: '100%',
@@ -407,6 +456,7 @@ const styles = StyleSheet.create({
     right: -1,
     top: 0,
     width: 2,
+    height: 20,
     zIndex: 1,
   },
   horizontalLine: {
@@ -417,9 +467,10 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   photo1Cell: {
-    borderWidth: 3,
     borderColor: '#FFE97C',
-    shadowColor: '#C57CFF',
+
+    borderWidth: 3,
+     shadowColor: '#C57CFF',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 1,
     shadowRadius: 10,
@@ -445,7 +496,8 @@ const styles = StyleSheet.create({
   photo2Cell: {
     borderWidth: 3,
     borderColor: '#ADEFFF',
-  },
+
+   },
   iconButton: {
     padding: 6,
   },

@@ -1,6 +1,9 @@
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import { Platform , StyleSheet, Text, View } from 'react-native';
 import { useFonts } from 'expo-font';
+import * as NavigationBar from 'expo-navigation-bar';
+import { useEffect } from 'react';
+
 import TicTacToe from '@/components/TicTacToe';
 export default function App() {
   const [fontsLoaded] = useFonts({
@@ -8,7 +11,12 @@ export default function App() {
     'Fredoka': require('./assets/fonts/fredoka-one.one-regular.ttf'),
   });
 
-  
+  useEffect(() => {
+    if (Platform.OS === 'android') {
+      // Скрыть нижнюю панель навигации
+      NavigationBar.setVisibilityAsync('hidden');
+    }
+  }, []);
   return (
     <View style={styles.container}>
        <TicTacToe 

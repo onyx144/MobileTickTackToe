@@ -16,7 +16,7 @@ export const useTicTacToeGame = () => {
     winner: null,
     winningLine: null,
   });
-
+  const [history, setHistory] = useState<Board[]>([]);
   const [bestMove, setBestMove] = useState<number[] | null>(null);
   const [gameComplete, setGameComplete] = useState(false);
 
@@ -172,6 +172,8 @@ function checkWin(board: Board, player: Player) {
     });
     
     if (emptyCells.length > 0) {
+      setHistory(prev => [...prev, JSON.parse(JSON.stringify(newBoard))]);
+
       const [row, col] = emptyCells[Math.floor(Math.random() * emptyCells.length)];
       newBoard[row][col] = 'O';
       
@@ -198,7 +200,7 @@ function checkWin(board: Board, player: Player) {
     ) {
       return;
     }
-    
+    setHistory(prev => [...prev, JSON.parse(JSON.stringify(gameState.board))]);
     const newBoard = JSON.parse(JSON.stringify(gameState.board));
     newBoard[row][col] = 'X';
     
@@ -217,6 +219,35 @@ function checkWin(board: Board, player: Player) {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
   }, [gameState.board, gameState.currentPlayer, gameState.winner, checkWinner]);
+
+  const undoLastTwoMoves = useCallback(() => {
+    if (history.length < 1) return; // хотя бы два хода в истории
+  
+    setHistory(prev => {
+      const newHistory = [...prev];
+      // получаем состояние два хода назад
+      const prevBoard = newHistory[newHistory.length - 2];
+  
+      // убираем последние два хода из истории
+      newHistory.splice(-2, 2);
+  
+      if (!prevBoard) return newHistory;
+  
+      // определяем чей теперь ход
+      const movesCount = prevBoard.flat().filter(cell => cell !== null).length;
+      const nextPlayer: Player = movesCount % 2 === 0 ? 'X' : 'O';
+  
+      setGameState({
+        board: prevBoard.map(row => [...row]), // создаем копию
+        currentPlayer: nextPlayer,
+        winner: null,
+        winningLine: null,
+      });
+  
+      return newHistory;
+    });
+  }, [history]);
+  
 
   const resetGame = useCallback(() => {
     setGameState({
@@ -267,5 +298,6 @@ function checkWin(board: Board, player: Player) {
     gameComplete,
     handleCellPress,
     resetGame,
+    undoLastTwoMoves,
   };
 };
