@@ -6,6 +6,8 @@ import PlayIcon from '@/assets/svg/play-icon';
 import globalStyles from '@/styles/global-styles';
 type StartScreenProps = {
   onStart: () => void;
+  playButtonStyle?: any;
+  animatePlayButton?: (toValue: number) => void;
 };
 
 const { width } = Dimensions.get('window');
@@ -61,7 +63,7 @@ const Clock: React.FC<{ size?: number }> = ({ size = 24 }) => {
   );
 };
 
-const StartScreen: React.FC<StartScreenProps> = ({ onStart }) => {
+const StartScreen: React.FC<StartScreenProps> = ({ onStart, playButtonStyle, animatePlayButton }) => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const scaleAnimation = useRef(new Animated.Value(1)).current;
   const progressAnimation = useRef(new Animated.Value(0)).current;
@@ -77,18 +79,26 @@ const StartScreen: React.FC<StartScreenProps> = ({ onStart }) => {
   );
 
   const handlePressIn = () => {
-    Animated.spring(scaleAnimation, {
-      toValue: 0.95,
-      useNativeDriver: true,
-    }).start();
+    if (animatePlayButton) {
+      animatePlayButton(0.9);
+    } else {
+      Animated.spring(scaleAnimation, {
+        toValue: 0.95,
+        useNativeDriver: true,
+      }).start();
+    }
   };
 
   const handlePressOut = () => {
-    Animated.spring(scaleAnimation, {
-      toValue: 1,
-      friction: 5,
-      useNativeDriver: true,
-    }).start();
+    if (animatePlayButton) {
+      animatePlayButton(1);
+    } else {
+      Animated.spring(scaleAnimation, {
+        toValue: 1,
+        friction: 5,
+        useNativeDriver: true,
+      }).start();
+    }
   };
 
   useEffect(() => {
@@ -145,9 +155,9 @@ const StartScreen: React.FC<StartScreenProps> = ({ onStart }) => {
         </LinearGradient>
 
         {!isLoading && (
-          <Animated.View style={[styles.playButtonContainer, { transform: [{ scale: scaleAnimation }] }]}>
+          <Animated.View style={[styles.playButtonContainer, playButtonStyle || { transform: [{ scale: scaleAnimation }] }]}>
             <TouchableOpacity
-              activeOpacity={0.9}
+              activeOpacity={1}
               onPressIn={handlePressIn}
               onPressOut={handlePressOut}
               onPress={handleStart}

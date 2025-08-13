@@ -259,6 +259,7 @@ function checkWin(board: Board, player: Player) {
     
     setGameComplete(false);
     setBestMove(null);
+    setHistory([]); // Сброс истории игры
     
     if (Platform.OS !== 'web') {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);

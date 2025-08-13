@@ -13,6 +13,9 @@ export const useTicTacToeAnimations = (
   const player1Anim = useRef(new Animated.Value(0)).current;
   const player2Anim = useRef(new Animated.Value(0)).current;
   const congratsAnim = useRef(new Animated.Value(0)).current;
+  const backIconScale = useRef(new Animated.Value(1)).current;
+  const undoButtonScale = useRef(new Animated.Value(1)).current;
+  const playButtonScale = useRef(new Animated.Value(1)).current;
 
   const animatePlayerTurn = useCallback((player: Player) => {
     if (player === 'X') {
@@ -59,9 +62,38 @@ export const useTicTacToeAnimations = (
   const resetAnimations = useCallback(() => {
     gameContainerAnim.setValue(0);
     congratsAnim.setValue(0);
-    player1Anim.setValue(0);
+    // После сброса поднимаем аватар первого игрока по умолчанию
+    player1Anim.setValue(1);
     player2Anim.setValue(0);
-  }, [gameContainerAnim, congratsAnim, player1Anim, player2Anim]);
+    // Сброс анимации кнопок
+    backIconScale.setValue(1);
+    undoButtonScale.setValue(1);
+    playButtonScale.setValue(1);
+  }, [gameContainerAnim, congratsAnim, player1Anim, player2Anim, backIconScale, undoButtonScale, playButtonScale]);
+
+  const animateBackIcon = useCallback((toValue: number) => {
+    Animated.timing(backIconScale, {
+      toValue,
+      duration: 100,
+      useNativeDriver: true,
+    }).start();
+  }, [backIconScale]);
+
+  const animateUndoButton = useCallback((toValue: number) => {
+    Animated.timing(undoButtonScale, {
+      toValue,
+      duration: 100,
+      useNativeDriver: true,
+    }).start();
+  }, [undoButtonScale]);
+
+  const animatePlayButton = useCallback((toValue: number) => {
+    Animated.timing(playButtonScale, {
+      toValue,
+      duration: 100,
+      useNativeDriver: true,
+    }).start();
+  }, [playButtonScale]);
 
   useEffect(() => {
     animatePlayerTurn(currentPlayer);
@@ -130,11 +162,32 @@ export const useTicTacToeAnimations = (
     ],
   };
 
+  const backIconStyle = {
+    transform: [{ scale: backIconScale }],
+    opacity: 1,
+  };
+
+  const undoButtonStyle = {
+    transform: [{ scale: undoButtonScale }],
+    opacity: 1,
+  };
+
+  const playButtonStyle = {
+    transform: [{ scale: playButtonScale }],
+    opacity: 1,
+  };
+
   return {
     player1Style,
     player2Style,
     gameContainerStyle,
     congratsContainerStyle,
+    backIconStyle,
+    undoButtonStyle,
+    playButtonStyle,
+    animateBackIcon,
+    animateUndoButton,
+    animatePlayButton,
     resetAnimations,
   };
 };

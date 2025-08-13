@@ -45,7 +45,6 @@ const TicTacToe: React.FC<TicTacToeProps> = (props) => {
   const [hasStarted, setHasStarted] = useState<boolean>(false);
 
   const introAnim = useRef(new Animated.Value(0)).current;
-  const backScale = useRef(new Animated.Value(1)).current; // вместо useSharedValue
 
   const { gameState, bestMove, gameComplete, handleCellPress, undoLastTwoMoves, resetGame } = useTicTacToeGame();
 
@@ -54,6 +53,12 @@ const TicTacToe: React.FC<TicTacToeProps> = (props) => {
     player2Style,
     gameContainerStyle,
     congratsContainerStyle,
+    backIconStyle,
+    undoButtonStyle,
+    playButtonStyle,
+    animateBackIcon,
+    animateUndoButton,
+    animatePlayButton,
     resetAnimations,
   } = useTicTacToeAnimations(
     gameState.currentPlayer,
@@ -64,6 +69,8 @@ const TicTacToe: React.FC<TicTacToeProps> = (props) => {
   const handleResetGame = () => {
     resetGame();
     resetAnimations();
+    // Сброс анимаций кнопок
+    hintScale.setValue(1);
   };
 
   useEffect(() => {
@@ -73,9 +80,12 @@ const TicTacToe: React.FC<TicTacToeProps> = (props) => {
         toValue: 1,
         duration: 500,
         useNativeDriver: true,
-      }).start();
+      }).start(() => {
+        // После завершения анимации входа поднимаем аватар первого игрока
+        resetAnimations();
+      });
     }
-  }, [hasStarted, introAnim]);
+  }, [hasStarted, introAnim, resetAnimations]);
 
   const introStyle = {
     opacity: introAnim,
@@ -87,19 +97,6 @@ const TicTacToe: React.FC<TicTacToeProps> = (props) => {
         }),
       },
     ],
-  };
-
-  const backAnimatedStyle = {
-    transform: [{ scale: backScale }],
-    opacity: 1,
-  };
-
-  const animateBackButton = (toValue: number) => {
-    Animated.timing(backScale, {
-      toValue,
-      duration: 100,
-      useNativeDriver: true,
-    }).start();
   };
 
   const hintScale = useRef(new Animated.Value(1)).current;
@@ -126,6 +123,10 @@ const handleBackToStart = () => {
   }).start(() => {
     handleResetGame();
     setHasStarted(false);
+    // Сброс анимации входа
+    introAnim.setValue(0);
+    // Сбрасываем анимации аватаров при возврате к стартовому экрану
+    resetAnimations();
   });
 };
 
@@ -191,12 +192,12 @@ const handleBackToStart = () => {
 
         {/* Top bar icons */}
         <View style={styles.topBar} pointerEvents="box-none">
-        <Animated.View style={[styles.backButton, backAnimatedStyle]}>
+        <Animated.View style={[styles.backButton, backIconStyle]}>
   <TouchableOpacity
     activeOpacity={1}
-    onPressIn={() => animateBackButton(0.9)}
+    onPressIn={() => animateBackIcon(0.9)}
     onPressOut={() => {
-      animateBackButton(1);
+      animateBackIcon(1);
       setHasStarted(false);  
       handleResetGame(); 
     }}
@@ -227,13 +228,21 @@ const handleBackToStart = () => {
 
         {moveCount >= 2 && (
           <View style={styles.imageContainer} pointerEvents="box-none">
-            <TouchableOpacity onPress={undoLastTwoMoves} activeOpacity={0.8} testID="back-button">
-              <Image
-                source={require('../assets/back_board.png')}
-                style={styles.backIcon}
-                resizeMode="contain"
-              />
-            </TouchableOpacity>
+            <Animated.View style={undoButtonStyle}>
+              <TouchableOpacity 
+                onPress={undoLastTwoMoves} 
+                activeOpacity={1}
+                onPressIn={() => animateUndoButton(0.9)}
+                onPressOut={() => animateUndoButton(1)}
+                testID="back-button"
+              >
+                <Image
+                  source={require('../assets/back_board.png')}
+                  style={styles.backIcon}
+                  resizeMode="contain"
+                />
+              </TouchableOpacity>
+            </Animated.View>
           </View>
         )}
       </Animated.View>
@@ -247,7 +256,11 @@ const handleBackToStart = () => {
       />
       {!hasStarted && (
         <View style={styles.startScreenContainer}>
-          <StartScreen onStart={() => setHasStarted(true)} />
+          <StartScreen 
+            onStart={() => setHasStarted(true)} 
+            playButtonStyle={playButtonStyle}
+            animatePlayButton={animatePlayButton}
+          />
         </View>
       )}
     </ImageBackground>
@@ -256,7 +269,7 @@ const handleBackToStart = () => {
 
 const styles = StyleSheet.create({
   container: { flex: 1, width: '100%', height: '100%' },
-  backIcon: { width: 110, height: 110 },
+  backIcon: { width: 70, height: 70 },
   imageContainer: {
     position: 'absolute',
     top: '20%',
@@ -283,12 +296,11 @@ const styles = StyleSheet.create({
     borderRadius: 35,
     justifyContent: 'center',
     alignItems: 'center',
-    elevation: 10,
+    elevation: 14,
     shadowColor: 'rgba(144, 33, 232, 0.8)',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.8,
-    shadowRadius: 20,
-  },
+   },
   hintBorder: {
     width: 40,
     height: 40,

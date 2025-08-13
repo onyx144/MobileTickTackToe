@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef , useState } from 'react';
 import { View, Text, Image, StyleSheet, Dimensions, Animated  } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Player } from '@/types/tic-tac-toe';
@@ -12,13 +12,11 @@ interface PlayerAvatarProps {
   player: Player;
   currentPlayer: Player;
   winner: Player | 'draw' | null;
-  animatedStyle: any;
+  animatedStyle: any; // анимация подъёма аватара
   testID: string;
   boardHeight?: number;
   isFirstPlayer?: boolean;
 }
-
-// animations moved to `Animation.tsx`
 
 const PlayerAvatar: React.FC<PlayerAvatarProps> = ({
   photo,
@@ -32,24 +30,57 @@ const PlayerAvatar: React.FC<PlayerAvatarProps> = ({
   isFirstPlayer,
 }) => {
   const isActive = currentPlayer === player && !winner;
-  const { activeStars, starTriggers, removeStar } = useAvatarStars(isActive, {
+
+  // Показываем фон и звёзды только после подъёма аватара
+  const [showBackground, setShowBackground] = useState(false);
+
+  const { activeStars, starTriggers, removeStar } = useAvatarStars(isActive && showBackground, {
     maxStars: 5,
     minIntervalMs: 500,
     maxIntervalMs: 1500,
   });
-  const rotation = useLoopingRotation(isActive, { durationMs: 18000 });
+
+  const rotation = useLoopingRotation(isActive && showBackground, { durationMs: 18000 });
   const blinkingOpacity = useBlinkingOpacity(isActive, { lowOpacity: 0.3, durationMs: 200 });
+
+  // Очистка звезд при деактивации
+  useEffect(() => {
+    if (!isActive || !showBackground) {
+      activeStars.forEach(starId => removeStar(starId));
+    }
+  }, [isActive, showBackground, activeStars, removeStar]);
+
+  // После завершения анимации подъёма аватара включаем фон
+  useEffect(() => {
+    if (isActive) {
+      const timer = setTimeout(() => setShowBackground(true), 100); // подстраиваем под длительность animatedStyle
+      return () => clearTimeout(timer);
+    } else {
+      setShowBackground(false);
+    }
+  }, [isActive]);
+
+  // Сброс состояния при изменении игрока или сбросе игры
+  useEffect(() => {
+    if (!isActive) {
+      setShowBackground(false);
+    }
+  }, [currentPlayer, winner]);
+
   const renderTurnIndicator = () => {
     if (currentPlayer !== player || winner) return null;
-    
+
     return (
       <View style={styles.turnIndicatorAboveAvatar}>
-        <Text style={[
-          styles.turnTextAboveAvatar,
-          player === 'O' && styles.turnTextSecondPlayer
-        ]}>
+        <Animated.Text
+          style={[
+            styles.turnTextAboveAvatar,
+            player === 'O' && styles.turnTextSecondPlayer,
+            { opacity: blinkingOpacity }, // мигание только индикатора хода
+          ]}
+        >
           {player === 'X' ? 'Your turn' : `${name}'s turn`}
-        </Text>
+        </Animated.Text>
       </View>
     );
   };
@@ -62,71 +93,77 @@ const PlayerAvatar: React.FC<PlayerAvatarProps> = ({
         start={{ x: 0.5, y: 0 }}
         end={{ x: 0.5, y: 1 }}
       >
-        {isFirstPlayer && (
-              <LinearGradient
-                colors={['#4B56EF', '#9165FF', 'rgba(226, 66, 228, 0)']}
-                start={{ x: 0, y: 0.5 }}
-                end={{ x: 1, y: 0.5 }}
-                locations={[0.205, 0.76, 1]}
-                style={styles.leftBorder}
-              />
-            )}
-            {!isFirstPlayer && (
-              <LinearGradient
-                colors={['#4B56EF', '#9165FF', 'rgba(226, 66, 228, 0)']}
-                start={{ x: 0, y: 0.5 }}
-                end={{ x: 1, y: 0.5 }}
-                locations={[0.205, 0.76, 1]}
-                style={styles.rightBorder}
-              />
-            )}
+        {isFirstPlayer ? (
+          <LinearGradient
+            colors={['#4B56EF', '#9165FF', 'rgba(226, 66, 228, 0)']}
+            start={{ x: 0, y: 0.5 }}
+            end={{ x: 1, y: 0.5 }}
+            locations={[0.205, 0.76, 1]}
+            style={styles.leftBorder}
+          />
+        ) : (
+          <LinearGradient
+            colors={['#4B56EF', '#9165FF', 'rgba(226, 66, 228, 0)']}
+            start={{ x: 0, y: 0.5 }}
+            end={{ x: 1, y: 0.5 }}
+            locations={[0.205, 0.76, 1]}
+            style={styles.rightBorder}
+          />
+        )}
+
         <View style={styles.contentContainer}>
-        {currentPlayer === player && !winner && (
-   
-    <Animated.View
-      pointerEvents="none"
-      style={[
-        styles.rotatingBackground,
-        {
-          transform: [
-            {
-              rotate: rotation.interpolate({
-                inputRange: [0, 1],
-                outputRange: ['0deg', '360deg'],
-              }),
-            },
-          ],
-        },
-      ]}
-    >
-      <Image 
-        source={isFirstPlayer ? require('@/assets/bg_player.png') : require('@/assets/bg_player2.png')} 
-        style={styles.bgImage} 
-      />
-      {activeStars.map((starId) => (
-       <AnimatedStar 
-         key={starId} 
-         isActive={starTriggers.includes(starId)} 
-         onComplete={() => removeStar(starId)} 
-         isFirstPlayer={isFirstPlayer || false}
-       />
-     ))}
-    </Animated.View>
-  )}
+          {/* Фон и звёзды только после подъёма аватара */}
+          {isActive && showBackground && (
+            <Animated.View
+              pointerEvents="none"
+              style={[
+                styles.rotatingBackground,
+                {
+                  transform: [
+                    {
+                      rotate: rotation.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: ['0deg', '360deg'],
+                      }),
+                    },
+                  ],
+                },
+              ]}
+            >
+              <Image
+                source={isFirstPlayer ? require('@/assets/bg_player.png') : require('@/assets/bg_player2.png')}
+                style={styles.bgImage}
+              />
+              {activeStars.map((starId) => (
+                <AnimatedStar
+                  key={starId}
+                  isActive={starTriggers.includes(starId)}
+                  onComplete={() => removeStar(starId)}
+                  isFirstPlayer={isFirstPlayer || false}
+                />
+              ))}
+            </Animated.View>
+          )}
+
           {renderTurnIndicator()}
-          <Animated.View style={[
-            styles.avatarContainer, 
-            currentPlayer === player 
-              ? (isFirstPlayer ? styles.activeFirstPlayerContainer : styles.activeSecondPlayerContainer)
-              : (isFirstPlayer ? styles.firstPlayerAvatar : styles.secondPlayerAvatar),
-            animatedStyle
-          ]}>
-          
+
+          <Animated.View
+            style={[
+              styles.avatarContainer,
+              currentPlayer === player
+                ? isFirstPlayer
+                  ? styles.activeFirstPlayerContainer
+                  : styles.activeSecondPlayerContainer
+                : isFirstPlayer
+                ? styles.firstPlayerAvatar
+                : styles.secondPlayerAvatar,
+              animatedStyle,
+            ]}
+          >
             <Image source={photo} style={styles.avatar} />
           </Animated.View>
-          <Animated.Text style={[styles.playerName, currentPlayer === player && !winner && { opacity: blinkingOpacity }]}>
-           {name}
-          </Animated.Text>
+
+          <Text style={styles.playerName}>{name}</Text>
         </View>
       </LinearGradient>
     </Animated.View>
@@ -192,7 +229,7 @@ const styles = StyleSheet.create({
     color: 'white',
      fontFamily: 'Fredoka',
      textTransform: 'uppercase',
-
+    width: '100%',
     fontStyle: 'normal',
     textShadowColor: 'rgba(0, 0, 0, 0.5)',
     textShadowOffset: { width: 1, height: 1 },

@@ -296,8 +296,10 @@ const GameBoard: React.FC<GameBoardProps> = ({
             styles.hintBackground,
             {
               position: 'absolute',
-              left: '40%',
-              top: '40%',
+              top: cellSize / 2 - 8,    // половина cellSize минус половина размера подсказки
+              left: cellSize / 2 - 8,   // то же для X
+              justifyContent: 'center',
+              alignItems: 'center',
               transform: [{ scale: hintScale }],
               zIndex: 10,
             },
@@ -337,10 +339,17 @@ const GameBoard: React.FC<GameBoardProps> = ({
       {[1,2].map(i => (
     <LinearGradient
       key={`h-${i}`}
-      colors={['#00CCFF', '#00CCFF']}
+      colors={[
+        'rgba(183, 0, 255,  0.2)',       // 0% — прозрачный фиолетовый
+        '#00CCFF',                    // 20.5% — яркий голубой
+        '#00CCFF',                    // 76% — тот же голубой
+        'rgba(183, 0, 255, 0.2)', // 100%
+       ]}
+       start={{ x: 1, y: 0 }}
+       end={{ x: 0, y: 1 }} 
+       locations={[0, 0.3, 0.8, 1]}
       style={{
         position: 'absolute',
-        zIndex: 999999,
         top: i*cellSize - 1, // минус половина толщины линии
         left: 0,
         width: cellSize*3,
@@ -352,10 +361,10 @@ const GameBoard: React.FC<GameBoardProps> = ({
     <LinearGradient
       key={`v-${i}`}
       colors={[
-        'rgba(183, 0, 255, 0)',       // 0% — прозрачный фиолетовый
+        'rgba(183, 0, 255,  0.2)',       // 0% — прозрачный фиолетовый
         '#00CCFF',                    // 20.5% — яркий голубой
         '#00CCFF',                    // 76% — тот же голубой
-        'rgba(183, 0, 255, 0)', // 100%
+        'rgba(183, 0, 255,  0.2)', // 100%
        ]}
        start={{ x: 0, y: 0 }}
        end={{ x: 0, y: 1 }} 
@@ -400,8 +409,7 @@ const styles = StyleSheet.create({
   cell: {
     justifyContent: 'center',
     alignItems: 'center',
-    margin: 3,
-    backgroundColor: '#184BD933',
+     backgroundColor: '#184BD933',
     borderRadius: 20,
     overflow: 'hidden', 
   },
