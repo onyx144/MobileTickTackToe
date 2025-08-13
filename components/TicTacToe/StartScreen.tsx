@@ -225,7 +225,7 @@ const styles = StyleSheet.create({
   titleText: {
     fontFamily: 'Fredoka',
     fontSize: 48,
-    width: '100%',
+    width: 300,
     fontWeight: 600,
      color: '#FFFFFF',
     textAlign: 'center',
