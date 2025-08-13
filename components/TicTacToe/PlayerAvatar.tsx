@@ -37,8 +37,8 @@ const PlayerAvatar: React.FC<PlayerAvatarProps> = ({
     minIntervalMs: 500,
     maxIntervalMs: 1500,
   });
-  const rotation = useLoopingRotation(isActive, { durationMs: 6000 });
-  const blinkingOpacity = useBlinkingOpacity(isActive, { lowOpacity: 0.3, durationMs: 500 });
+  const rotation = useLoopingRotation(isActive, { durationMs: 18000 });
+  const blinkingOpacity = useBlinkingOpacity(isActive, { lowOpacity: 0.3, durationMs: 200 });
   const renderTurnIndicator = () => {
     if (currentPlayer !== player || winner) return null;
     
@@ -191,8 +191,7 @@ const styles = StyleSheet.create({
   playerName: {
     color: 'white',
      fontFamily: 'Fredoka',
-    fontWeight: '600',
-    textTransform: 'uppercase',
+     textTransform: 'uppercase',
 
     fontStyle: 'normal',
     textShadowColor: 'rgba(0, 0, 0, 0.5)',
@@ -203,7 +202,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 15,
-
+    maxWidth: '100%',
+    fontFamily: 'Fredoka',
     position: 'absolute',
     top: '-90%',
     zIndex: 10,
@@ -211,11 +211,11 @@ const styles = StyleSheet.create({
   turnTextAboveAvatar: {
     color: '#FFE97C',
     fontFamily: 'Fredoka',
-    fontWeight: '600',
-    fontStyle: 'normal', // SemiBold is usually fontWeight 600, fontStyle normal
-    fontSize: 15,
+     fontSize: 15,
     lineHeight: 18.3, // 15 * 1.22 = 18.3
     letterSpacing: 0,
+    width: 100,
+    height: 'auto',
     textAlign: 'center',
     verticalAlign: 'middle',
     textShadowColor: '#B14EFF',
@@ -224,8 +224,7 @@ const styles = StyleSheet.create({
   },
   turnTextSecondPlayer: {
     fontFamily: 'Fredoka',
-    fontWeight: '600',
-    fontStyle: 'normal',
+     fontStyle: 'normal',
     color: 'white',
     textShadowColor: '#B14EFF',
     textShadowOffset: { width: 0, height: 0 },

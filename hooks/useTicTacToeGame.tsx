@@ -79,23 +79,83 @@ export const useTicTacToeGame = () => {
   }, []);
 
   const calculateBestMove = useCallback(() => {
+    const { board, currentPlayer } = gameState;
+    const opponent: Player = currentPlayer === 'X' ? 'O' : 'X';
+  
     const emptyCells: number[][] = [];
-    
-    gameState.board.forEach((row, rowIndex) => {
+    board.forEach((row, rowIndex) => {
       row.forEach((cell, colIndex) => {
         if (cell === null) {
           emptyCells.push([rowIndex, colIndex]);
         }
       });
     });
-    
-    if (emptyCells.length > 0) {
-      const randomIndex = Math.floor(Math.random() * emptyCells.length);
-      setBestMove(emptyCells[randomIndex]);
-    } else {
+  
+    if (emptyCells.length === 0) {
       setBestMove(null);
+      return;
     }
-  }, [gameState.board]);
+  
+    // 1. Победа
+    for (const [row, col] of emptyCells) {
+      const newBoard: Board = board.map(r => [...r]);
+      newBoard[row][col] = currentPlayer;
+      if (checkWin(newBoard, currentPlayer)) {
+        setBestMove([row, col]);
+        return;
+      }
+    }
+  
+    // 2. Блокировка
+    for (const [row, col] of emptyCells) {
+      const newBoard: Board = board.map(r => [...r]);
+      newBoard[row][col] = opponent;
+      if (checkWin(newBoard, opponent)) {
+        setBestMove([row, col]);
+        return;
+      }
+    }
+  
+    // 3. Центр
+    if (board[1][1] === null) {
+      setBestMove([1, 1]);
+      return;
+    }
+  
+    // 4. Углы
+    const corners = [
+      [0, 0], [0, 2], [2, 0], [2, 2]
+    ].filter(([r, c]) => board[r][c] === null);
+    if (corners.length > 0) {
+      setBestMove(corners[Math.floor(Math.random() * corners.length)]);
+      return;
+    }
+  
+    // 5. Случайно
+    setBestMove(emptyCells[Math.floor(Math.random() * emptyCells.length)]);
+  }, [gameState]);
+  
+
+// Функция проверки победы
+function checkWin(board: Board, player: Player) {
+  const lines = [
+    // строки
+    [[0,0],[0,1],[0,2]],
+    [[1,0],[1,1],[1,2]],
+    [[2,0],[2,1],[2,2]],
+    // колонки
+    [[0,0],[1,0],[2,0]],
+    [[0,1],[1,1],[2,1]],
+    [[0,2],[1,2],[2,2]],
+    // диагонали
+    [[0,0],[1,1],[2,2]],
+    [[0,2],[1,1],[2,0]],
+  ];
+  
+  return lines.some(line =>
+    line.every(([r, c]) => board[r][c] === player)
+  );
+}
 
   const makeAIMove = useCallback(() => {
     if (gameState.winner) return;

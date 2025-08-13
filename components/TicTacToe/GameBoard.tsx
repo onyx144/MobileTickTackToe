@@ -26,17 +26,17 @@ const AnimatedAvatar: React.FC<AnimatedAvatarProps> = ({ source, row, col, style
       Animated.parallel([
         Animated.timing(opacity, {
           toValue: 1,
-          duration: 100,
+          duration: 35,
           useNativeDriver: true,
         }),
         Animated.timing(scale, {
           toValue: 1,
-          duration: 300,
+          duration: 100,
           useNativeDriver: true,
         }),
         Animated.timing(translateX, {
           toValue: 0,
-          duration: 300,
+          duration: 100,
           useNativeDriver: true,
         }),
       ]).start();
@@ -266,8 +266,8 @@ const GameBoard: React.FC<GameBoardProps> = ({
             styles.hintBackground,
             {
               position: 'absolute',
-              left: (cellSize - 16) / 2, // центрируем иконку в клетке
-              top: (cellSize - 16) / 2,
+              left: '40%', // центрируем иконку в клетке
+              top: '40%',
               transform: [{ scale: hintScale }],
               zIndex: 10,
             },
@@ -372,13 +372,14 @@ const styles = StyleSheet.create({
     borderWidth: 3,
     borderColor: '#C57CFF',
     borderRadius: 24,
+    width: 85,
+
     paddingHorizontal: 12,
     paddingVertical: 6,
   },
   timerText: {
     fontFamily: 'Fredoka',
-    fontWeight: '600',
-    fontSize: 20,
+     fontSize: 20,
     lineHeight: 20,
     letterSpacing: 0,
     color: '#FFFFFF',

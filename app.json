@@ -3,7 +3,7 @@
     "name": "tik-tack-toe",
     "slug": "tik-tack-toe",
     "version": "1.0.0",
-    "orientation": "default",
+    "orientation": "landscape",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,

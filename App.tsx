@@ -5,7 +5,7 @@ import TicTacToe from '@/components/TicTacToe';
 export default function App() {
   const [fontsLoaded] = useFonts({
     'Bangers': require('./assets/fonts/Bangers-Regular.ttf'),
-    'Fredoka': require('./assets/fonts/Fredoka-Regular.ttf'),
+    'Fredoka': require('./assets/fonts/fredoka-one.one-regular.ttf'),
   });
 
   

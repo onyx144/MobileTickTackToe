@@ -225,8 +225,8 @@ const styles = StyleSheet.create({
   titleText: {
     fontFamily: 'Fredoka',
     fontSize: 48,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
+    fontWeight: 600,
+     color: '#FFFFFF',
     textAlign: 'center',
   },
   playButtonContainer: {
@@ -266,8 +266,8 @@ const styles = StyleSheet.create({
   },
   loadingTextInside: {
     fontFamily: 'Fredoka',
-    fontWeight: '600', // SemiBold
-    fontSize: 18,
+     fontSize: 18,
+     fontWeight: 600,
     lineHeight: 22, // 18 * 1.22 ≈ 21.96
     letterSpacing: 0,
     color: '#FFFFFF',

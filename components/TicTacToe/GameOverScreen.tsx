@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState , useRef } from 'react';
 import { Text, TouchableOpacity, StyleSheet, Dimensions, Animated, View , Image } from 'react-native';
 import { Player } from '@/types/tic-tac-toe';
 import LottieView from 'lottie-react-native';
@@ -22,7 +22,9 @@ const GameOverScreen: React.FC<GameOverScreenProps> = ({
   animatedStyle,
 }) => {
   const [showVictoryEffects, setShowVictoryEffects] = useState(false);
+  const startProgress = 0.3; // начать с 30% анимации
 
+  const progress = useRef(new Animated.Value(startProgress)).current;
 useEffect(() => {
   if (gameComplete && winner !== 'draw' && winner !== null) {
     // Подождать 300-500 мс перед эффектами
@@ -50,7 +52,12 @@ useEffect(() => {
   return (
     <Animated.View style={[styles.gameOverContainer, animatedStyle]} testID="game-over-container">
       {showWinGif && (
-       <View style={styles.lottieContainer} pointerEvents="none">
+       <View 
+       style={[
+        styles.lottieContainer,
+        { transform: [{ scale: 3 }] }   
+      ]}
+       pointerEvents="none">
        <LottieView
          source={winGif}
          autoPlay
@@ -137,7 +144,8 @@ const styles = StyleSheet.create({
   lottieContainer: {
     position: 'absolute',
     top: 0,
-    left: 0,
+    left:  0,
+    width: width  ,
     right: 0,
     bottom: 0,
     justifyContent: 'center',
@@ -145,7 +153,7 @@ const styles = StyleSheet.create({
     zIndex: 99999,
   },
   winGif: {
-    width: width * 0.8, // например 80% ширины экрана
+    width: width * 4, // например 80% ширины экрана
     height: 300,
   },
 });

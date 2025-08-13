@@ -22,7 +22,7 @@ const { width } = Dimensions.get('window');
 const DEFAULT_PROPS = {
   backgroundImage: require('../assets/bg.png'),
   name1: 'Player 1',
-  name2: 'AI',
+  name2: 'Player 2',
   photo1: require('../assets/photo1.jpg'),
   photo2: require('../assets/photo2.jpg'),
   winGif: require('../assets/confetti.json'),
@@ -102,6 +102,7 @@ const TicTacToe: React.FC<TicTacToeProps> = (props) => {
        />
 
           <View style={styles.playersContainer}>
+          <View style={{ marginRight: 20 }}>
             <PlayerAvatar
               photo={photo1}
               name={name1}
@@ -113,6 +114,7 @@ const TicTacToe: React.FC<TicTacToeProps> = (props) => {
               boardHeight={boardHeight}
               isFirstPlayer={true}
             />
+          </View>
             
            
               <GameBoard
@@ -124,8 +126,9 @@ const TicTacToe: React.FC<TicTacToeProps> = (props) => {
                 photo2={photo2}
                 onLayout={(event) => setBoardHeight(event.nativeEvent.layout.height)}
               />
-            
+            <View style={{ marginLeft: 20 }}>
             <PlayerAvatar
+            
               photo={photo2}
               name={name2}
               player="O"
@@ -136,6 +139,7 @@ const TicTacToe: React.FC<TicTacToeProps> = (props) => {
               boardHeight={boardHeight}
               isFirstPlayer={false}
             />
+            </View>
           </View>
         </View>
          {/* Top bar icons */}
