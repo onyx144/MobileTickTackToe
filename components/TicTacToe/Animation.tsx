@@ -33,7 +33,7 @@ export const VictoryGlow: React.FC = () => {
         StyleSheet.absoluteFill,
         {
           borderRadius: CELL_SIZE / 2,
-          backgroundColor: '#FFD70033', // золотистый свет
+          backgroundColor: '#F3B63A', // золотистый свет
           opacity: glow,
         },
       ]}

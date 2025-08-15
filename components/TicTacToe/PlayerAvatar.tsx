@@ -157,7 +157,7 @@ const PlayerAvatar: React.FC<PlayerAvatarProps> = ({
       ? {
           transform: [
             {
-              translateY: winner === player ? -40 : 10, // победитель сверху, проигравший снизу
+              translateY: winner === player ? -40 : 0, // победитель сверху, проигравший снизу
             },
           ],
           borderWidth: winner === player ? 6 : 3, 
@@ -224,10 +224,13 @@ const styles = StyleSheet.create({
   },
   playerName: {
     color: 'white',
+    position: 'relative',
     fontFamily: 'Fredoka',
     textTransform: 'uppercase',
-    width: '100%',
-    fontStyle: 'normal',
+    width: 90,
+    textAlign: 'center',
+    height: 'auto',
+     fontStyle: 'normal',
     textShadowColor: 'rgba(0, 0, 0, 0.5)',
     textShadowOffset: { width: 1, height: 1 },
     textShadowRadius: 2,

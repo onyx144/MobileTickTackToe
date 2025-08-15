@@ -293,7 +293,7 @@ function checkWin(board: Board, player: Player) {
       // Delay showing game over by 5 minutes (300000 ms)
       const delay = setTimeout(() => {
         setGameComplete(true);
-      }, 3000);
+      }, 1000);
 
       return () => clearTimeout(delay);
     }
