@@ -17,31 +17,37 @@ export const useTicTacToeAnimations = (
   const undoButtonScale = useRef(new Animated.Value(1)).current;
   const playButtonScale = useRef(new Animated.Value(1)).current;
 
-  const animatePlayerTurn = useCallback((player: Player) => {
-    if (player === 'X') {
-      Animated.parallel([
-        Animated.spring(player1Anim, {
-          toValue: 1,
-          useNativeDriver: true,
-        }),
-        Animated.spring(player2Anim, {
-          toValue: 0,
-          useNativeDriver: true,
-        }),
-      ]).start();
-    } else {
-      Animated.parallel([
-        Animated.spring(player1Anim, {
-          toValue: 0,
-          useNativeDriver: true,
-        }),
-        Animated.spring(player2Anim, {
-          toValue: 1,
-          useNativeDriver: true,
-        }),
-      ]).start();
-    }
-  }, [player1Anim, player2Anim]);
+  // 🔥 новое: мигание клеток
+  const cellBlinkAnim = useRef(new Animated.Value(0)).current;
+
+  const animatePlayerTurn = useCallback(
+    (player: Player) => {
+      if (player === 'X') {
+        Animated.parallel([
+          Animated.spring(player1Anim, {
+            toValue: 1,
+            useNativeDriver: true,
+          }),
+          Animated.spring(player2Anim, {
+            toValue: 0,
+            useNativeDriver: true,
+          }),
+        ]).start();
+      } else {
+        Animated.parallel([
+          Animated.spring(player1Anim, {
+            toValue: 0,
+            useNativeDriver: true,
+          }),
+          Animated.spring(player2Anim, {
+            toValue: 1,
+            useNativeDriver: true,
+          }),
+        ]).start();
+      }
+    },
+    [player1Anim, player2Anim]
+  );
 
   const animateGameCompletion = useCallback(() => {
     Animated.sequence([
@@ -59,6 +65,25 @@ export const useTicTacToeAnimations = (
     ]).start();
   }, [gameContainerAnim, congratsAnim]);
 
+  const animateCellBlink = useCallback(() => {
+    cellBlinkAnim.setValue(0);
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(cellBlinkAnim, {
+          toValue: 1,
+          duration: 500,
+          useNativeDriver: true,
+        }),
+        Animated.timing(cellBlinkAnim, {
+          toValue: 0,
+          duration: 500,
+          useNativeDriver: true,
+        }),
+      ]),
+      { iterations: 5 } // мигаем 3 раза
+    ).start();
+  }, [cellBlinkAnim]);
+
   const resetAnimations = useCallback(() => {
     gameContainerAnim.setValue(0);
     congratsAnim.setValue(0);
@@ -69,45 +94,62 @@ export const useTicTacToeAnimations = (
     backIconScale.setValue(1);
     undoButtonScale.setValue(1);
     playButtonScale.setValue(1);
-  }, [gameContainerAnim, congratsAnim, player1Anim, player2Anim, backIconScale, undoButtonScale, playButtonScale]);
+    // сброс мигания
+    cellBlinkAnim.setValue(0);
+  }, [
+    gameContainerAnim,
+    congratsAnim,
+    player1Anim,
+    player2Anim,
+    backIconScale,
+    undoButtonScale,
+    playButtonScale,
+    cellBlinkAnim,
+  ]);
 
-  const animateBackIcon = useCallback((toValue: number) => {
-    Animated.timing(backIconScale, {
-      toValue,
-      duration: 100,
-      useNativeDriver: true,
-    }).start();
-  }, [backIconScale]);
+  const animateBackIcon = useCallback(
+    (toValue: number) => {
+      Animated.timing(backIconScale, {
+        toValue,
+        duration: 100,
+        useNativeDriver: true,
+      }).start();
+    },
+    [backIconScale]
+  );
 
-  const animateUndoButton = useCallback((toValue: number) => {
-    Animated.timing(undoButtonScale, {
-      toValue,
-      duration: 100,
-      useNativeDriver: true,
-    }).start();
-  }, [undoButtonScale]);
+  const animateUndoButton = useCallback(
+    (toValue: number) => {
+      Animated.timing(undoButtonScale, {
+        toValue,
+        duration: 100,
+        useNativeDriver: true,
+      }).start();
+    },
+    [undoButtonScale]
+  );
 
-  const animatePlayButton = useCallback((toValue: number) => {
-    Animated.timing(playButtonScale, {
-      toValue,
-      duration: 100,
-      useNativeDriver: true,
-    }).start();
-  }, [playButtonScale]);
+  const animatePlayButton = useCallback(
+    (toValue: number) => {
+      Animated.timing(playButtonScale, {
+        toValue,
+        duration: 100,
+        useNativeDriver: true,
+      }).start();
+    },
+    [playButtonScale]
+  );
 
   useEffect(() => {
     // Анимация смены игроков только если игра не завершена
     if (!gameComplete) {
       animatePlayerTurn(currentPlayer);
     }
-    // При завершении игры анимации аватаров "замораживаются" в текущем положении
   }, [currentPlayer, animatePlayerTurn, gameComplete]);
 
   useEffect(() => {
     if (gameComplete) {
       animateGameCompletion();
-      // При завершении игры сохраняем текущее состояние аватаров
-      // Анимации смены игроков больше не будут срабатывать
     }
   }, [gameComplete, animateGameCompletion]);
 
@@ -183,6 +225,14 @@ export const useTicTacToeAnimations = (
     opacity: 1,
   };
 
+  // 🔥 стиль для мигающих клеток
+  const cellBlinkStyle = {
+    opacity: cellBlinkAnim.interpolate({
+      inputRange: [0, 1],
+      outputRange: [1, 0.3],
+    }),
+  };
+
   return {
     player1Style,
     player2Style,
@@ -191,9 +241,11 @@ export const useTicTacToeAnimations = (
     backIconStyle,
     undoButtonStyle,
     playButtonStyle,
+    cellBlinkStyle,
     animateBackIcon,
     animateUndoButton,
     animatePlayButton,
+    animateCellBlink, // запуск мигания клеток
     resetAnimations,
   };
 };

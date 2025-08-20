@@ -5,6 +5,7 @@ import { Board } from '@/types/tic-tac-toe';
 import { Animated, StyleProp, ImageStyle, ImageSourcePropType } from 'react-native';
 import { VictoryGlow, AnimatedStar, useLoopingRotation, useAvatarStars } from './Animation';
 import { StarAdvise } from '@/assets/svg/star-advise';
+import { useTicTacToeAnimations } from '@/hooks/useTicTacToeAnimations';
 
 type AnimatedAvatarProps = {
     source: ImageSourcePropType;
@@ -92,7 +93,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
   onVictory,
   onBotVictory,
 }) => {
-  
+ 
   const countMoves = board.flat().filter(cell => cell !== null).length;
 
   useEffect(() => {
@@ -104,6 +105,50 @@ const GameBoard: React.FC<GameBoardProps> = ({
   
   const hintScale = useRef(new Animated.Value(1)).current;
   
+  //Мигание
+  const cellBlinkAnim = useRef(new Animated.Value(0)).current;
+  const blinkState = useRef(0);
+
+  // стиль мигания
+  const cellBlinkStyle = {
+    backgroundColor: cellBlinkAnim.interpolate({
+      inputRange: [0, 1],
+      outputRange: ['#184BD933', 'transparent'], // от цвета к прозрачному
+    }),
+  };
+  
+
+  // --- Запуск анимации всех клеток ---
+  const startBlink = () => {
+    let blinkCount = 0;
+    const maxBlinks = 7;
+  
+    const blink = () => {
+      if (blinkCount >= maxBlinks) {
+        cellBlinkAnim.setValue(1); // оставляем фон прозрачным
+        return;
+      }
+  
+      blinkState.current = blinkState.current === 0 ? 1 : 0;
+      cellBlinkAnim.setValue(blinkState.current);
+  
+      blinkCount += 1;
+      setTimeout(blink, 300);
+    };
+  
+    blink();
+  };
+  
+  // Запуск анимации при монтировании и при сбросе доски
+  useEffect(() => {
+    startBlink();
+  }, []); // старт при монтировании
+  
+  useEffect(() => {
+    if (isBoardEmpty(board)) {
+      startBlink();
+    }
+  }, [board]);
   // Перезапускаем анимацию при изменении bestMove
   useEffect(() => {
     if (bestMove && showHint) {
@@ -263,9 +308,9 @@ const GameBoard: React.FC<GameBoardProps> = ({
     const backgroundColor = countMoves > 0 ? 'transparent' : '#184BD933';
 
     const handleCellPress = () => {
-      if (isHintCell) {
+      
         onHintUsed(); // Отключаем подсказку при нажатии на подсказанную клетку
-      }
+      
       onCellPress(row, col);
     };
 
@@ -277,10 +322,16 @@ const GameBoard: React.FC<GameBoardProps> = ({
     activeOpacity={0.7}
     testID={`cell-${row}-${col}`}
   >
-    <View
+    <Animated.View
         style={[
           styles.cell,
-          { width: cellSize, height: cellSize, backgroundColor },
+          cellBlinkStyle,
+          { width: cellSize, height: cellSize,  
+            backgroundColor: cellBlinkAnim.interpolate({
+              inputRange: [0, 1],
+              outputRange: ['#184BD933', 'transparent'],
+            }),
+          },
         ]}
       >
       {isWinningCell && (
@@ -340,12 +391,13 @@ const GameBoard: React.FC<GameBoardProps> = ({
           <StarAdvise width={16} height={16} />
         </Animated.View>
       )}
-    </View>
+    </Animated.View>
   </TouchableOpacity>
     );
   };
  const currentPlayer = countMoves % 2 === 0 ? 'X' : 'O';
   const hintCell = getHintCell();
+  
   const hintVisible = showHint && hintCell !== null && currentPlayer === 'X';
   const hintPosition = hintCell ? {
     left: hintCell[1] * cellSize  + (cellSize - 15) / 2, 
@@ -364,8 +416,8 @@ const GameBoard: React.FC<GameBoardProps> = ({
   return (
     <View style={[styles.board, { width: cellSize * 3 + 10, height: cellSize * 3 + 10 }]} testID="game-board" onLayout={onLayout}>
       <View style={styles.timerContainer} pointerEvents="none">
-        <View style={styles.timerPill}>
-          <Animated.Text style={styles.timerText}>{minutes}:{seconds}</Animated.Text>
+        <View style={[styles.timerPill, { justifyContent: 'center', alignItems: 'center' }]}>
+          <Animated.Text style={[styles.timerText, { textAlign: 'center' }]}>{minutes}:{seconds}</Animated.Text>
         </View>
       </View>
       {[1,2].map(i => (
@@ -460,7 +512,7 @@ const styles = StyleSheet.create({
     borderWidth: 3,
     borderColor: '#C57CFF',
     borderRadius: 24,
-    width: 85,
+    width: 95,
 
     paddingHorizontal: 12,
     paddingVertical: 6,

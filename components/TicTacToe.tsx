@@ -141,13 +141,13 @@ const TicTacToe: React.FC<TicTacToeProps> = (props) => {
   }, [hasStarted]);
   // Автоматически запускаем загрузку истории при старте игры
    
-   useEffect(() => {
+  useEffect(() => {
     if (hasStarted && !storyLoaded) {
       setIsLoadingStory(true);
       storyProgressAnimation.setValue(0);
       storyLoadingIconRotation.setValue(0);
-      
-      // Анимация вращения иконки загрузки
+  
+      // Бесконечная анимация вращения иконки
       const rotationLoop = Animated.loop(
         Animated.timing(storyLoadingIconRotation, {
           toValue: 1,
@@ -156,21 +156,32 @@ const TicTacToe: React.FC<TicTacToeProps> = (props) => {
         })
       );
       rotationLoop.start();
-
-      // Анимация прогресса загрузки
-      Animated.timing(storyProgressAnimation, {
-        toValue: 1,
-        duration: 3000,
-        useNativeDriver: false,
-      }).start(({ finished }) => {
-        if (finished) {
-          setIsLoadingStory(false);
-          setStoryLoaded(true);
-          rotationLoop.stop();
-        }
-      });
+  
+      // Бесконечная анимация прогресса (0 -> 1 -> 0)
+      const progressLoop = Animated.loop(
+        Animated.sequence([
+          Animated.timing(storyProgressAnimation, {
+            toValue: 1,
+            duration: 2000,
+            useNativeDriver: false,
+            easing: Easing.linear,
+          }),
+          Animated.timing(storyProgressAnimation, {
+            toValue: 0,
+            duration: 0, // мгновенный сброс
+            useNativeDriver: false,
+          }),
+        ])
+      );
+      progressLoop.start();
+  
+      // Если нужно, можно сохранять ссылки на loop, чтобы потом остановить вручную
+      return () => {
+        rotationLoop.stop();
+        progressLoop.stop();
+      };
     }
-  }, [hasStarted, storyLoaded]); 
+  }, [hasStarted, storyLoaded]);
 
   const storyProgressWidth = storyProgressAnimation.interpolate({
     inputRange: [0, 1],
@@ -278,9 +289,8 @@ const handleBackToStart = () => {
               showHint={showHint}
               onHintUsed={() => setShowHint(false)}
               onVictory={playVictorySound}
-               onBotVictory={() => playSadGameSound()}
-
-            />
+              onBotVictory={() => playSadGameSound()}
+             />
 
             <View style={{ marginLeft: 20 }}>
               <PlayerAvatar
@@ -308,7 +318,7 @@ const handleBackToStart = () => {
       animateBackIcon(1);
       setHasStarted(false);
       setIsGameStarted(false);  
-      handleResetGame(); 
+      
     }}
   >
     <BackIcon />
@@ -448,7 +458,8 @@ const handleBackToStart = () => {
                   <StartScreen 
           onStart={() => {
             setHasStarted(true);
-            setIsGameStarted(true); 
+            setIsGameStarted(true);
+            handleResetGame(); 
           }} 
           playButtonStyle={playButtonStyle}
           animatePlayButton={animatePlayButton}
@@ -569,7 +580,7 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
     borderRadius: 20,
-    backgroundColor: 'rgba(111, 0, 255, 0.2)',
+    backgroundColor: '#57406a',
   },
   storyProgressFillWrapper: {
     height: '100%',
