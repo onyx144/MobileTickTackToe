@@ -6,6 +6,7 @@ import {
   Animated,
   Image,
   Text,
+  Easing ,
   ImageBackground,
   TouchableOpacity,
 } from 'react-native';
@@ -63,7 +64,7 @@ const TicTacToe: React.FC<TicTacToeProps> = (props) => {
     resumeBackgroundMusic,
   } = useSound();
 
-  const { gameState, bestMove, gameComplete, handleCellPress, undoLastTwoMoves, resetGame } = useTicTacToeGame(playNotificationSound);
+  const { isGameStarted, setIsGameStarted, gameState, bestMove, gameComplete, handleCellPress, undoLastTwoMoves, resetGame } = useTicTacToeGame(playNotificationSound);
 
   const {
     player1Style,
@@ -92,6 +93,7 @@ const TicTacToe: React.FC<TicTacToeProps> = (props) => {
     // Сброс состояния истории
     setIsLoadingStory(false);
     setStoryLoaded(false);
+    setIsGameStarted(true);
     storyProgressAnimation.setValue(0);
     storyLoadingIconRotation.setValue(0);
     // Включаем фоновую музыку при новой игре
@@ -111,7 +113,32 @@ const TicTacToe: React.FC<TicTacToeProps> = (props) => {
       });
     }
   }, [hasStarted, introAnim, resetAnimations]);
-
+ 
+  // Создаём отдельную анимацию для ellipse
+  const ellipseTranslateY = useRef(new Animated.Value(Dimensions.get('window').height)).current; // старт снизу
+  const ellipseOpacity = useRef(new Animated.Value(0)).current;
+  
+  useEffect(() => {
+    if (hasStarted) {
+      Animated.parallel([
+        Animated.timing(ellipseTranslateY, {
+          toValue: 0, // на своё место
+          duration: 1500,
+          easing: Easing.out(Easing.quad),
+          useNativeDriver: true,
+        }),
+        Animated.timing(ellipseOpacity, {
+          toValue: 1,
+          duration: 1000,
+          easing: Easing.out(Easing.quad),
+          useNativeDriver: true,
+        }),
+      ]).start();
+    } else {
+      ellipseTranslateY.setValue(Dimensions.get('window').height);
+      ellipseOpacity.setValue(0);
+    }
+  }, [hasStarted]);
   // Автоматически запускаем загрузку истории при старте игры
    
    useEffect(() => {
@@ -209,19 +236,20 @@ const handleBackToStart = () => {
     <ImageBackground source={backgroundImage} style={styles.container} testID="tic-tac-toe-game">
       <Animated.View style={[styles.gameContainer, hasStarted ? introStyle : null, gameContainerStyle]} testID="game-content">
         <View>
-          <Image
-            source={require('../assets/ellipse.png')}
-            style={{
-              position: 'absolute',
-              top: 50,
-              left: 0,
-              right: 0,
-              width: '100%',
-              height: Dimensions.get('window').height,
-              resizeMode: 'cover',
-              zIndex: 0,
-            }}
-          />
+        <Animated.Image
+  source={require('../assets/ellipse.png')}
+  style={{
+    position: 'absolute',
+    top: 50,
+    left: 0,
+    right: 0,
+    width: '100%',
+    height: Dimensions.get('window').height,
+    resizeMode: 'cover',
+    zIndex: 0,
+    transform: [{ translateY: ellipseTranslateY }],
+   }}
+/>
 
           <View style={styles.playersContainer}>
             <View style={{ marginRight: 20 }}>
@@ -250,7 +278,8 @@ const handleBackToStart = () => {
               showHint={showHint}
               onHintUsed={() => setShowHint(false)}
               onVictory={playVictorySound}
-              onBotVictory={() => playSadGameSound()}
+               onBotVictory={() => playSadGameSound()}
+
             />
 
             <View style={{ marginLeft: 20 }}>
@@ -277,7 +306,8 @@ const handleBackToStart = () => {
     onPressIn={() => animateBackIcon(0.9)}
     onPressOut={() => {
       animateBackIcon(1);
-      setHasStarted(false);  
+      setHasStarted(false);
+      setIsGameStarted(false);  
       handleResetGame(); 
     }}
   >
@@ -418,6 +448,7 @@ const handleBackToStart = () => {
                   <StartScreen 
           onStart={() => {
             setHasStarted(true);
+            setIsGameStarted(true); 
           }} 
           playButtonStyle={playButtonStyle}
           animatePlayButton={animatePlayButton}

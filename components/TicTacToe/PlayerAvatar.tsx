@@ -88,22 +88,18 @@ const PlayerAvatar: React.FC<PlayerAvatarProps> = ({
         end={{ x: 0.5, y: 1 }}
       >
         {isFirstPlayer ? (
-          <LinearGradient
-            colors={['#4B56EF', '#9165FF', 'rgba(226, 66, 228, 0)']}
-            start={{ x: 0, y: 0.5 }}
-            end={{ x: 1, y: 0.5 }}
-            locations={[0.205, 0.76, 1]}
-            style={styles.leftBorder}
-          />
-        ) : (
-          <LinearGradient
-            colors={['#4B56EF', '#9165FF', 'rgba(226, 66, 228, 0)']}
-            start={{ x: 0, y: 0.5 }}
-            end={{ x: 1, y: 0.5 }}
-            locations={[0.205, 0.76, 1]}
-            style={styles.rightBorder}
-          />
-        )}
+  <Image
+    source={require('@/assets/border_player.png')}
+    style={[styles.leftBorderImage]}
+    resizeMode="stretch"
+  />
+) : (
+  <Image
+    source={require('@/assets/border_player.png')}
+    style={[styles.rightBorderImage]}
+    resizeMode="stretch"
+  />
+)}
 
         <View style={styles.contentContainer}>
           {/* Фон и звёзды для активного игрока или победителя */}
@@ -245,6 +241,23 @@ const styles = StyleSheet.create({
     top: '-90%',
     zIndex: 10,
   },
+  leftBorderImage: {
+    position: 'absolute',
+    left: -1,
+    bottom: 0,
+    width: 3, // ширина бордера
+    height: '100%',
+    zIndex: 100000,
+  },
+  rightBorderImage: {
+    position: 'absolute',
+    right: -2,
+    bottom: 0,
+    width: 3, // ширина бордера
+    height: '100%',
+    zIndex: 1000,
+  },
+  
   turnTextAboveAvatar: {
     color: '#FFE97C',
     fontFamily: 'Fredoka',

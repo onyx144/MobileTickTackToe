@@ -1,5 +1,5 @@
 import React, { useMemo, useRef, useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Animated, Dimensions, Easing } from 'react-native';
+import { View, Image , Text, StyleSheet, TouchableOpacity, Animated, Dimensions, Easing } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import BackgroundWrapper from './litlecomponent/BackgroundWrapper';
 import PlayIcon from '@/assets/svg/play-icon';
@@ -146,21 +146,18 @@ const StartScreen: React.FC<StartScreenProps> = ({ onStart, playButtonStyle, ani
     <BackgroundWrapper>
     <View style={styles.overlay} pointerEvents="box-none">
       <View style={styles.overlayContent}>
-      <LinearGradient
-        colors={[
-          'rgba(125,34,241,0)',        // left transparent
-          'rgba(124, 34, 241, 0.09)',     // center (0.9 * 0.5)
-          'rgba(124, 34, 241, 0.1)',      // peak (1 * 0.5)
-          'rgba(124, 34, 241, 0.09)',     // center (0.9 * 0.5)
-          'rgba(124, 34, 241, 0)',        // right transparent
-        ]}
-        locations={[0, 0.2, 0.5, 0.8, 1]}
-        style={styles.gradientText}
-        start={{ x: 0, y: 0.5 }}
-        end={{ x: 1, y: 0.5 }}
-      >
-          <Text style={styles.titleText}>Tic-Tac-Toe</Text>
-        </LinearGradient>
+    
+          <View style={ styles.gradientText}>
+            <Image
+              source={require('@/assets/bg_title1.png')}
+              style={styles.titleGlow}
+             />
+            <Image
+              source={require('@/assets/bg_title2.png')}
+              style={styles.titleGlow}
+             />
+            <Text style={styles.titleText}>{'Tic-Tac-Toe'}</Text>
+        </View>
 
         {!isLoading && (
           <Animated.View style={[styles.playButtonContainer, playButtonStyle || { transform: [{ scale: scaleAnimation }] }]}>
@@ -236,20 +233,34 @@ const styles = StyleSheet.create({
   },
   gradientText: {
     borderRadius: 12,
-    paddingHorizontal: 16,
+    justifyContent: 'center', 
+    alignItems: 'center',
+    paddingHorizontal: 36,
     paddingVertical: 12,
-    marginBottom: 32,
+    marginBottom: 72,
   },
   titleText: {
     fontFamily: 'Fredoka',
     fontSize: 48,
-    width: 300,
+    width: '110%',
     fontWeight: 600,
-     color: '#FFFFFF',
+    color: '#FFFFFF',
     textAlign: 'center',
+    zIndex: 4,
+  },
+  titleGlow: {
+    position: 'absolute',
+    top: -80, // Корректируем для масштаба (1.3 * -40)
+    width: 221, // 170 * 1.3 для увеличения
+    height: 221, // 170 * 1.3 для увеличения
+    transform: [{ scale: 1.3 }], // Растягиваем по ширине и высоте
+    opacity: 0.85,
+    zIndex: 2,
+    resizeMode: 'contain',
   },
   playButtonContainer: {
     alignSelf: 'center',
+    zIndex: 3,
   },
   playButton: {
     width: Math.min(140, width * 0.35),

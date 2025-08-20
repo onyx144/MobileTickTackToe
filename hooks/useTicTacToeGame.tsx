@@ -19,7 +19,7 @@ export const useTicTacToeGame = (onMovePlayed?: () => void) => {
   const [history, setHistory] = useState<Board[]>([]);
   const [bestMove, setBestMove] = useState<number[] | null>(null);
   const [gameComplete, setGameComplete] = useState(false);
-
+  const [isGameStarted, setIsGameStarted] = useState(false);
   const checkWinner = useCallback((board: Board) => {
     // Check rows
     for (let i = 0; i < 3; i++) {
@@ -306,5 +306,7 @@ function checkWin(board: Board, player: Player) {
     handleCellPress,
     resetGame,
     undoLastTwoMoves,
+    isGameStarted,
+    setIsGameStarted,
   };
 };

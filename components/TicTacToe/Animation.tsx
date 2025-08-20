@@ -8,6 +8,7 @@ const CELL_SIZE = Math.floor(width / 12);
 
 // Компонент для анимации победы с золотистым свечением
 export const VictoryGlow: React.FC = () => {
+  
   const glow = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {

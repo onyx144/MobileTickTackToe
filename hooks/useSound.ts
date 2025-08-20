@@ -54,13 +54,15 @@ export const useSound = () => {
 
     initSounds();
 
-    // Обработчик AppState для приостановки и возобновления музыки
     const handleAppStateChange = async (nextAppState: AppStateStatus) => {
       if (appState.current.match(/active/) && nextAppState.match(/inactive|background/)) {
-        // приложение уходит в фон — ставим музыку на паузу
+        // Приложение уходит в фон или экран блокируется — пауза всех звуков
         if (backgroundMusic.current) await backgroundMusic.current.pauseAsync();
+        if (notificationSound.current) await notificationSound.current.pauseAsync();
+        if (victorySound.current) await victorySound.current.pauseAsync();
+        if (sadGameSound.current) await sadGameSound.current.pauseAsync();
       } else if (appState.current.match(/inactive|background/) && nextAppState === 'active') {
-        // возвращение в приложение — возобновляем музыку
+        // Возврат в приложение — возобновляем только фон
         if (backgroundMusic.current) await backgroundMusic.current.playAsync();
       }
       appState.current = nextAppState;
@@ -68,7 +70,6 @@ export const useSound = () => {
 
     const subscription = AppState.addEventListener('change', handleAppStateChange);
 
-    // Очистка при размонтировании
     return () => {
       subscription.remove();
       const cleanup = async () => {
@@ -123,3 +124,4 @@ export const useSound = () => {
     isInitialized,
   };
 };
+
