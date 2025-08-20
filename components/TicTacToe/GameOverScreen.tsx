@@ -3,7 +3,7 @@ import { Text, TouchableOpacity, StyleSheet, Dimensions, Animated, View , Image 
 import { Player } from '@/types/tic-tac-toe';
 import LottieView from 'lottie-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-
+import Confetti from './litlecomponent/Confeti';
 const { width } = Dimensions.get('window');
 
 interface GameOverScreenProps {

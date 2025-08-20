@@ -30,7 +30,7 @@ const DEFAULT_PROPS = {
   name2: 'Player 2',
   photo1: require('../assets/photo1.jpg'),
   photo2: require('../assets/photo2.jpg'),
-  winGif: require('../assets/confetti.json'),
+  winGif: require('../assets/animations/success-animation.json'),
 };
 
 const TicTacToe: React.FC<TicTacToeProps> = (props) => {
