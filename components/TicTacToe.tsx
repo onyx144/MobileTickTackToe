@@ -25,11 +25,11 @@ import { useSound } from '../hooks/useSound';
 const { width } = Dimensions.get('window');
 
 const DEFAULT_PROPS = {
-  backgroundImage: require('../assets/bg.png'),
+  backgroundImage: require('../assets/WTP_BGS_ALL_0048.png'),
   name1: 'Player 1',
   name2: 'Player 2',
-  photo1: require('../assets/photo1.jpg'),
-  photo2: require('../assets/photo2.jpg'),
+  photo1: require('../assets/6.png'),
+  photo2: require('../assets/81.png'),
   winGif: require('../assets/animations/success-animation.json'),
 };
 
@@ -117,6 +117,8 @@ const TicTacToe: React.FC<TicTacToeProps> = (props) => {
   // Создаём отдельную анимацию для ellipse
   const ellipseTranslateY = useRef(new Animated.Value(Dimensions.get('window').height)).current; // старт снизу
   const ellipseOpacity = useRef(new Animated.Value(0)).current;
+  const entranceTranslateY = useRef(new Animated.Value(Dimensions.get('window').height)).current;
+  const entranceOpacity = useRef(new Animated.Value(0)).current;
   
   useEffect(() => {
     if (hasStarted) {
@@ -245,6 +247,7 @@ const handleBackToStart = () => {
 
   return (
     <ImageBackground source={backgroundImage} style={styles.container} testID="tic-tac-toe-game">
+     
       <Animated.View style={[styles.gameContainer, hasStarted ? introStyle : null, gameContainerStyle]} testID="game-content">
         <View>
         <Animated.Image
@@ -262,7 +265,8 @@ const handleBackToStart = () => {
    }}
 />
 
-          <View style={styles.playersContainer}>
+<Animated.View style={[styles.playersContainer, { transform: [{ translateY: ellipseTranslateY }] }]}>
+
             <View style={{ marginRight: 20 }}>
               <PlayerAvatar
                 photo={photo1}
@@ -305,7 +309,7 @@ const handleBackToStart = () => {
                 isFirstPlayer={false}
               />
             </View>
-          </View>
+          </Animated.View>
         </View>
 
         {/* Top bar icons */}
@@ -323,6 +327,7 @@ const handleBackToStart = () => {
   >
     <BackIcon />
   </TouchableOpacity>
+  
 </Animated.View>
 
         {/* Центральная часть topbar */}
@@ -467,6 +472,7 @@ const handleBackToStart = () => {
         />
         </View>
       )}
+      
     </ImageBackground>
   );
 };

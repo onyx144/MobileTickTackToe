@@ -200,6 +200,7 @@ const styles = StyleSheet.create({
     width: AVATAR_SIZE,
     height: AVATAR_SIZE,
     borderRadius: 50,
+    resizeMode: 'cover', // чтобы изображение полностью помещалось в свой контейнер
   },
   leftBorder: {
     position: 'absolute',

@@ -421,26 +421,19 @@ const GameBoard: React.FC<GameBoardProps> = ({
         </View>
       </View>
       {[1,2].map(i => (
-    <LinearGradient
-      key={`h-${i}`}
-      colors={[
-        'rgba(183, 0, 255,  0.2)',       // 0% — прозрачный фиолетовый
-        '#00CCFF',                    // 20.5% — яркий голубой
-        '#00CCFF',                    // 76% — тот же голубой
-        'rgba(183, 0, 255, 0.2)', // 100%
-       ]}
-       start={{ x: 1, y: 0 }}
-       end={{ x: 0, y: 1 }} 
-       locations={[0, 0.3, 0.8, 1]}
-      style={{
-        position: 'absolute',
-        top: i*cellSize - 1, // минус половина толщины линии
-        left: 0,
-        width: cellSize*3,
-        height: 2, // толщина линии
-      }}
-    />
-  ))}
+  <Image
+    key={`h-${i}`}
+    source={require('@/assets/horizontal_line.png')}
+    style={{
+      position: 'absolute',
+      top: i * cellSize - 1, // минус половина толщины линии
+      left: 0,
+      width: cellSize * 3,
+      height: 2, // толщина линии (подгони под размер картинки)
+      resizeMode: 'stretch',
+    }}
+  />
+))}
   {[1,2].map(i => (
     <LinearGradient
       key={`v-${i}`}
