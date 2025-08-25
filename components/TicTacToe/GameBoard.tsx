@@ -529,6 +529,8 @@ const styles = StyleSheet.create({
   bgImage: {
     width: '100%',
     height: '100%',
+    
+
   },
  
   highlightedCell: {
@@ -560,6 +562,13 @@ const styles = StyleSheet.create({
     shadowOpacity: 1,
     shadowRadius: 10,
     elevation: 10,
+    top: 0,
+     zIndex: 999,
+    
+     left: 0,
+     position: 'relative',
+    resizeMode: 'contain',
+    alignSelf: 'flex-start',
   },
   hintContainer: {
     position: 'absolute',

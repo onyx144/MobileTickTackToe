@@ -161,7 +161,15 @@ const PlayerAvatar: React.FC<PlayerAvatarProps> = ({
       : animatedStyle, // обычная анимация в процессе игры
   ]}
 >
-  <Image source={photo} style={styles.avatar} />
+  <Image
+    source={photo}
+    style={[
+      styles.avatar,
+      isFirstPlayer
+        ? { backgroundColor: '#dc851b' }
+        : { backgroundColor: '#3d4ab0' }
+    ]}
+  />
 </Animated.View>
 
           <Text style={styles.playerName}>{name}</Text>
@@ -192,16 +200,13 @@ const styles = StyleSheet.create({
   avatarContainer: {
     borderRadius: 50,
     overflow: 'hidden',
-    marginBottom: 10,
-    zIndex: 801,
+    marginBottom: 10, 
     position: 'relative',
-  },
+   },
   avatar: {
     width: AVATAR_SIZE,
-    height: AVATAR_SIZE,
-    borderRadius: 50,
-    resizeMode: 'cover', // чтобы изображение полностью помещалось в свой контейнер
-  },
+   
+    },
   leftBorder: {
     position: 'absolute',
     left: -2,
@@ -256,7 +261,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     width: 3, // ширина бордера
     height: '100%',
-    zIndex: 1000,
+    zIndex: 701,
   },
   
   turnTextAboveAvatar: {
@@ -297,8 +302,7 @@ const styles = StyleSheet.create({
   activeFirstPlayerContainer: {
     borderRadius: 50,
     overflow: 'hidden',
-    marginBottom: 10,
-    position: 'relative',
+     position: 'relative',
     borderWidth: 6,
     borderColor: '#FFE97C',
     shadowColor: '#C57CFF',
@@ -321,9 +325,8 @@ const styles = StyleSheet.create({
     left: -10,
     width: AVATAR_SIZE + 50,
     height: AVATAR_SIZE + 50,
-    zIndex: 800,
-    overflow: 'hidden',
-  },
+    zIndex: 700,
+   },
   bgImage: {
     width: '100%',
     height: '100%',

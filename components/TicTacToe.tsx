@@ -28,7 +28,7 @@ const DEFAULT_PROPS = {
   backgroundImage: require('../assets/WTP_BGS_ALL_0048.png'),
   name1: 'Player 1',
   name2: 'Player 2',
-  photo1: require('../assets/6.png'),
+  photo1: require('../assets/photo1.jpg'),
   photo2: require('../assets/81.png'),
   winGif: require('../assets/animations/success-animation.json'),
 };
