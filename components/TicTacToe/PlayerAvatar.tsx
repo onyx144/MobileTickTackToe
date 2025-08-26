@@ -202,10 +202,14 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     marginBottom: 10, 
     position: 'relative',
+    zIndex:  999,
    },
   avatar: {
     width: AVATAR_SIZE,
-   
+    height: AVATAR_SIZE,
+    borderRadius: 50,
+    resizeMode: 'cover',
+    zIndex:  999,
     },
   leftBorder: {
     position: 'absolute',
