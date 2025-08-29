@@ -521,7 +521,7 @@ const styles = StyleSheet.create({
   cellRotatingBackground: {
     position: 'absolute',
     top: -10,
-    left: -10,
+  
     zIndex: 0,
     overflow: 'hidden',
   },
