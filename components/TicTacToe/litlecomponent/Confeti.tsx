@@ -1,15 +1,14 @@
 import React from 'react';
 import LottieView from 'lottie-react-native';
 
-// Определяем интерфейс для пропсов
 interface ConfettiProps {
   isActive: boolean;
   level: number;
 }
+/*Confetti component */
 
 const Confetti: React.FC<ConfettiProps> = ({ isActive, level }) => {
   if (!isActive) return null;
-
   return (
     <LottieView
       source={require('../../../assets/animations/success-animation.json')}
