@@ -5,7 +5,7 @@ interface ConfettiProps {
   isActive: boolean;
   level: number;
 }
-/*Confetti component:*/
+/*Confetti component:   s*/
 
 const Confetti: React.FC<ConfettiProps> = ({ isActive, level }) => {
   if (!isActive) return null;
