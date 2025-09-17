@@ -14,7 +14,7 @@ const Confetti: React.FC<ConfettiProps> = ({ isActive, level }) => {
       source={require('../../../assets/animations/success-animation.json')}
       autoPlay
       loop={true} // Конфетти сыплется всё время
-      speed={0.5} // Медленное падение
+      speed={0.5} // Медленное падение //
       style={{
         position: 'absolute',
         top: 0,
