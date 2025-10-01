@@ -17,7 +17,7 @@ export const useTicTacToeAnimations = (
   const undoButtonScale = useRef(new Animated.Value(1)).current;
   const playButtonScale = useRef(new Animated.Value(1)).current;
 
-  // 🔥 новое: мигание клеток
+  // 🔥 новое: мигание клеток d
   const cellBlinkAnim = useRef(new Animated.Value(0)).current;
 
   const animatePlayerTurn = useCallback(
