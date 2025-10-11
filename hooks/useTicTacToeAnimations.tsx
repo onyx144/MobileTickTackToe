@@ -3,7 +3,7 @@ import { Animated, Dimensions } from 'react-native';
 import { Player } from '@/types/tic-tac-toe';
 
 const { height } = Dimensions.get('window');
-/*Animation hook 25 : */
+/*Animation hook 25 :*/
 export const useTicTacToeAnimations = (
   currentPlayer: Player,
   winner: Player | 'draw' | null,
