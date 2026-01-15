@@ -7,8 +7,10 @@ export interface TicTacToeProps {
   name2?: string;
   photo1?: string;
   photo2?: string;
+  photo3?: string;
   backendUrl?: string;
   winGif?: string;
+  
 }
 
 export interface GameState {
