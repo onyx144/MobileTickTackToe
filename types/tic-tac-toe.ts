@@ -10,7 +10,16 @@ export interface TicTacToeProps {
   photo3?: string;
   backendUrl?: string;
   winGif?: string;
-  
+  winner?: string;
+  winningLine?: number[][];
+  currentPlayer?: Player;
+  board?: Board;
+  gameState?: GameState;
+  gameStarted?: boolean;
+  gameEnded?: boolean;
+  gameWon?: boolean;
+  gameDraw?: boolean;
+  gameLost?: boolean;
 }
 
 export interface GameState {
