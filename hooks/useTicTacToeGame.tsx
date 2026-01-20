@@ -14,6 +14,11 @@ export const useTicTacToeGame = (onMovePlayed?: () => void) => {
     board: JSON.parse(JSON.stringify(initialBoard)),
     currentPlayer: 'X' as Player,
     winner: null,
+    isGameStarted: false,
+    isGameEnded: false,
+    isGameWon: false,
+    isGameDraw: false,
+    isGameLost: false,
     winningLine: null,
   });
   const [history, setHistory] = useState<Board[]>([]);
