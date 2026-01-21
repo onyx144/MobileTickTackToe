@@ -121,7 +121,7 @@ export const useTicTacToeGame = (onMovePlayed?: () => void) => {
       }
     }
   
-    // 3. Центр
+    
     if (board[1][1] === null) {
       setBestMove([1, 1]);
       return;
